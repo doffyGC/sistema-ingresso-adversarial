@@ -127,3 +127,125 @@ Ativos secundários, derivados do principal:
 > ameaça; o que ele faz (acumular via automação) é a **ameaça** — detalhada na seção 3.4.
 
 ---
+
+## 5. Ações e capacidades
+
+### A1 — Comprador legítimo
+
+- Consultar a disponibilidade de um setor do evento
+- Selecionar setor e quantidade
+- Solicitar uma reserva temporária
+- Concluir o pagamento dentro do prazo da reserva
+- Repetir a tentativa após uma rejeição (manualmente, poucas vezes)
+- Aguardar em fila de espera, se houver
+- Desistir
+
+### A2 — Comprador adversarial
+
+Possui **todas** as capacidades de A1, e adicionalmente:
+
+- **Automatizar** as requisições, eliminando o tempo de reação humano
+- **Paralelizar** dezenas ou centenas de sessões simultâneas
+- **Multiplicar identidades**: criar ou adquirir contas, usar documentos de terceiros
+- **Rotacionar origem**: trocar IP, dispositivo e *fingerprint* entre tentativas
+- **Monitorar** o endpoint de disponibilidade em alta frequência, detectando a abertura
+  do lote antes de qualquer humano
+- **Imobilizar estoque**: abrir muitas reservas e deixá-las expirar, ou renová-las,
+  retirando ingressos de circulação sem pagar por eles
+- **Calibrar o comportamento** para se parecer com tráfego humano (intervalos irregulares)
+- **Terceirizar** a resolução de CAPTCHA
+- Revender os ingressos obtidos fora da plataforma
+
+### A3 — Plataforma
+
+- Publicar (ou omitir) a disponibilidade de cada setor
+- Aceitar ou rejeitar uma solicitação de reserva
+- Definir o prazo de validade (TTL) da reserva
+- Liberar automaticamente as reservas expiradas
+- Limitar a quantidade de ingressos por identidade
+- Limitar o ritmo de requisições por sessão, conta ou origem (*rate limiting*)
+- Inserir uma fila de espera com ordenação
+- Exigir prova de humanidade (CAPTCHA) ou verificação de identidade
+- Registrar telemetria de comportamento de cada sessão
+- Cancelar pedidos e suspender contas *a posteriori*
+- Escolher **o que comunicar** ao usuário em cada rejeição
+
+> A última capacidade é a mais sutil e a mais importante para a seção 3.3: **toda
+> resposta da plataforma é também um sinal**, e escolher a mensagem de erro é escolher
+> quanta informação entregar ao adversário.
+
+---
+
+## 6. Informações observáveis
+
+O que cada ator **consegue** e **não consegue** observar define o que ele pode aprender
+entre uma rodada e a seguinte.
+
+### A1 — Comprador legítimo observa
+
+- A disponibilidade exibida na tela
+- O resultado da sua tentativa (aceita, rejeitada, em fila)
+- A mensagem de erro apresentada
+- A posição na fila e o tempo estimado de espera
+- O tempo restante da sua reserva
+
+**Não observa:** o estoque real, quantos concorrentes existem, nem por que foi rejeitado.
+
+### A2 — Comprador adversarial observa
+
+Tudo o que A1 observa, e ainda:
+
+- **Códigos de status e latência** de cada resposta — e a diferença entre elas
+- **Qual das suas contas ou IPs foi bloqueado, e após quantas tentativas** — o que revela
+  a ordem de grandeza dos limiares de detecção
+- O **instante exato** em que o estoque muda, por amostragem de alta frequência
+- A **taxa de sucesso de cada estratégia**, medida sobre muitas tentativas
+- Se uma rejeição é determinística ou probabilística (repetindo a mesma requisição)
+- O comportamento do sistema em **eventos anteriores**, acumulado entre vendas
+
+**Não observa:** o código das regras de detecção, os limiares exatos, quais sessões foram
+silenciosamente marcadas como suspeitas, nem o estoque real.
+
+### A3 — Plataforma observa
+
+- Volume, frequência e intervalo entre requisições por sessão, conta e origem
+- Cabeçalhos, *fingerprint* de dispositivo e origem de rede
+- Histórico de reservas por identidade
+- A **taxa de conversão reserva → pagamento** de cada identidade — o indicador mais
+  revelador de imobilização de estoque
+- Correlações entre contas (mesmo meio de pagamento, mesmo dispositivo)
+
+**Não observa:** a pessoa real por trás de uma conta, a intenção da compra, e — antes do
+prazo da reserva expirar — se aquela reserva será paga. A plataforma **decide sob
+incerteza e sob pressão de tempo**.
+
+> **Assimetria central do sistema:** A2 observa o *resultado* das regras de A3 e pode
+> inferir as regras. A3 observa o *comportamento* de A2, mas não sua identidade nem sua
+> intenção. Nenhum lado enxerga o outro por completo, e ambos aprendem com o que veem.
+
+---
+
+## 7. Restrições e custos
+
+| Ator | Restrições e custos |
+|---|---|
+| **A1** | Estoque finito; prazo curto para pagar; limite de ingressos por identidade; precisa estar disponível no horário exato da abertura; tolerância limitada a atrito (CAPTCHA, fila, erros) antes de desistir; custo emocional da frustração |
+| **A2** | Custo de infraestrutura (servidores, proxies, contas, resolução de CAPTCHA); custo de aquisição e risco de perda de identidades ao serem banidas; capital imobilizado nos ingressos até a revenda; janela temporal estreita (o lote esgota em minutos); risco de cancelamento *a posteriori* do pedido; custo crescente se a plataforma exigir verificação de identidade |
+| **A3** | Capacidade computacional sob pico de carga; **custo de falso positivo** — bloquear um comprador legítimo é caro em reputação e em receita; latência aceitável (atrito demais derruba a conversão); pressão do organizador por venda rápida e integral; custo de operação e moderação manual; exposição regulatória e de imagem se a venda for percebida como injusta |
+
+> A restrição decisiva é a de A3: **ela não pode simplesmente maximizar a segurança.**
+> Toda defesa que dificulta a vida de A2 também impõe custo a A1, e o orçamento de
+> atrito que A1 tolera é pequeno. É essa tensão que torna o problema estratégico em vez
+> de puramente técnico.
+
+---
+
+## 8. Tabela consolidada dos elementos principais
+
+| Ator | Objetivo | Ações ou capacidades | Informações observáveis | Restrições ou custos |
+|---|---|---|---|---|
+| **A1 — Comprador legítimo** | Obter o ingresso desejado com esforço razoável | Consultar, selecionar, reservar, pagar, reenviar tentativa manual, aguardar na fila, desistir | Disponibilidade exibida, resultado da tentativa, mensagem de erro, posição na fila, TTL restante | Estoque finito, prazo curto de pagamento, limite por identidade, precisa estar online no horário, baixa tolerância a atrito |
+| **A2 — Comprador adversarial** | Capturar o máximo de ingressos de alto valor ao menor custo e risco | Tudo de A1 + automação, paralelismo, múltiplas identidades, rotação de IP/dispositivo, monitoramento de alta frequência, imobilização de estoque, imitação de tráfego humano, terceirização de CAPTCHA | Tudo de A1 + latência e códigos de resposta, qual identidade caiu e após quantas tentativas, instante da liberação do lote, taxa de sucesso por estratégia, histórico entre eventos | Custo de infraestrutura e de contas, risco de banimento e de cancelamento do pedido, capital imobilizado, janela temporal estreita, custo de KYC |
+| **A3 — Plataforma** | Distribuir o estoque conforme as regras anunciadas, preservando justiça e disponibilidade | Publicar disponibilidade, aceitar/rejeitar reserva, definir e aplicar TTL, liberar expiradas, limitar por identidade, *rate limiting*, fila de espera, CAPTCHA/verificação, telemetria, cancelar e suspender, escolher a mensagem de resposta | Volume e cadência de requisições, *fingerprint* e origem, histórico de reservas, taxa de conversão reserva→pagamento, correlação entre contas | Capacidade sob pico, custo alto de falso positivo, latência aceitável, pressão do organizador por venda rápida, custo de moderação, exposição reputacional |
+
+---
