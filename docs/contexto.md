@@ -319,3 +319,113 @@ resultado justo quando as capacidades são assimétricas.**
 > pontos de exploração da superfície de ataque. Cada um já vem com o ativo afetado.
 
 ---
+
+## 11. Por que este caso é adversarial, e não apenas um erro ou acidente
+
+Um sistema pode falhar por acidente. Este não é o caso analisado. A distinção importa
+porque o enunciado penaliza explicitamente "tratar todo erro como ação adversarial".
+
+**Contraexemplo (falha acidental, fora do escopo):** um *bug* de concorrência permite que
+duas reservas simultâneas travem o mesmo assento, e a plataforma vende o ingresso duas
+vezes. Há dano real, mas **ninguém escolheu** que isso acontecesse, o comportamento não
+muda quando corrigido, e não existe reação à correção. É defeito, não adversidade.
+
+O caso analisado é adversarial por cinco razões concretas:
+
+1. **Há intenção e há escolha.** A2 não acumula ingressos por engano. Ele avalia custo,
+   retorno e risco, e decide. É um agente otimizador, não uma falha.
+
+2. **Os objetivos são genuinamente conflitantes.** Todo ingresso capturado por A2 é um
+   ingresso a menos para A1. O estoque é finito: não existe arranjo em que ambos os
+   objetivos sejam plenamente satisfeitos.
+
+3. **A regra é o alvo, não o obstáculo acidental.** A2 não quebra o sistema — ele **usa o
+   sistema exatamente como projetado**, em volume e velocidade que o projeto não previu.
+   A reserva temporária funciona perfeitamente; é justamente por funcionar que ela pode
+   ser transformada em ferramenta de imobilização de estoque. Não há erro a corrigir: há
+   um incentivo a redesenhar.
+
+4. **Há aprendizado dos dois lados.** Cada resposta da plataforma — um bloqueio, um
+   CAPTCHA, uma mensagem de erro específica, um atraso — informa A2 sobre onde está o
+   limiar. Cada defesa nova produz uma contramedida nova. Um acidente não se adapta à
+   correção; um adversário se adapta, e é essa adaptação que a seção 3.3 modela.
+
+5. **A defesa tem custo sobre terceiros.** Endurecer a regra contra A2 atinge A1, porque
+   A3 não consegue distingui-los no momento da decisão. Isso não é um efeito colateral
+   de um *bug*: é a consequência estrutural de decidir sob incerteza contra um oponente
+   que escolhe deliberadamente se parecer com o usuário legítimo.
+
+> **Síntese:** o que torna este sistema adversarial não é a existência de uma falha, mas
+> a existência de **um agente que lucra com a regra funcionando como projetada, e que
+> reage a toda tentativa de impedi-lo.**
+
+---
+
+## 12. Interfaces de fronteira
+
+Registro das superfícies por onde a interação atravessa o limite do sistema. Serve de
+insumo direto para o diagrama de superfície de ataque (seção 3.4). **A identificação
+dos pontos de exploração e a avaliação de risco não pertencem a esta seção.**
+
+| # | Interface | Quem acessa | Pressupostos envolvidos |
+|---|---|---|---|
+| **F1** | Consulta de disponibilidade de um setor | A1, A2 | P4, P5 |
+| **F2** | Criação de reserva temporária | A1, A2 | P1, P2 |
+| **F3** | Expiração e devolução automática da reserva | Plataforma (temporizador) | P2 |
+| **F4** | Confirmação de pagamento | A1, A2 | P1 |
+| **F5** | Cadastro e autenticação de identidade | A1, A2 | P1 |
+| **F6** | Fila de espera e ordenação de atendimento | A1, A2 | P3, P5 |
+| **F7** | Mensagens e códigos de resposta devolvidos ao cliente | A1, A2 | P3 |
+
+---
+
+## 13. Entregas desta seção para as seções seguintes
+
+| Destino | O que esta seção entrega |
+|---|---|
+| **Modelo estático (3.2)** | Jogadores do jogo: **A2 × A3**. Repertório de ações de cada um (seção 5) e as restrições de custo (seção 7) que devem justificar a ordem de preferência. A1 entra como custo colateral, não como jogador |
+| **Modelo dinâmico (3.3)** | O que cada lado observa (seção 6): é essa assimetria de observação que define o que se torna visível a cada rodada e dispara a adaptação |
+| **Superfície de ataque (3.4)** | As sete interfaces de fronteira (seção 12) e os cinco pressupostos (seção 9), já mapeados entre si |
+| **Ameaças e riscos (3.4)** | Os ativos da seção 4, para preencher a coluna "ativo afetado" da matriz de risco sem inventar ativos novos |
+| **Resiliência e arquitetura** | A restrição decisiva da seção 7: a plataforma não pode maximizar segurança, porque o custo do falso positivo sobre A1 é alto. Toda defesa proposta precisa declarar seu custo sobre A1 |
+
+---
+
+## 14. Referências desta seção
+
+Consolidadas em `fontes/referencias.md`. Fontes utilizadas na delimitação do sistema,
+nos pressupostos e na caracterização dos atores:
+
+1. **BOTS Act** — *Better Online Ticket Sales Act of 2016*, Public Law 114-274 (EUA).
+   Fonte primária que caracteriza legalmente a burla de controles de aquisição em
+   plataformas de ingressos. Base para o pressuposto P1.
+2. **National Consumer Law Center / FTC** — relatórios públicos sobre práticas do mercado
+   de revenda de ingressos e uso de automação na aquisição. Base para a caracterização
+   do ator A2 e do mercado secundário como fonte de incentivo.
+3. **OWASP Automated Threats to Web Applications** — catálogo OAT, em especial
+   **OAT-021 Denial of Inventory**, **OAT-019 Account Creation** e **OAT-006 Expediting**.
+   Base direta para os pressupostos P1, P2 e P5.
+4. **SCHNEIER, Bruce.** *Beyond Fear: Thinking Sensibly About Security in an Uncertain
+   World*. Copernicus, 2003. Base conceitual para a distinção entre falha acidental e
+   ação adversarial (seção 11) e para a noção de custo da defesa sobre o usuário legítimo.
+5. **ANDERSON, Ross.** *Security Engineering*, 3ª ed., Wiley, 2020. Capítulo sobre
+   economia da segurança: assimetria de custos entre atacante e defensor, base da
+   seção 7 e do pressuposto P5.
+
+> As referências devem ser conferidas e formatadas no padrão adotado pelo grupo antes da
+> entrega final.
+
+---
+
+## 15. Checklist do enunciado — itens cobertos por esta seção
+
+- [x] Uma interação específica e bem delimitada (seção 1)
+- [x] Principais atores e seus objetivos (seções 2 e 3)
+- [x] Ativo ou propriedade a preservar (seção 4)
+- [x] Ações e capacidades de cada ator (seção 5)
+- [x] Informações observáveis por cada ator (seção 6)
+- [x] Custos e restrições que limitam as ações (seção 7)
+- [x] Tabela consolidada dos elementos principais (seção 8)
+- [x] Pelo menos dois pressupostos e como podem falhar (seção 9 — cinco pressupostos)
+- [ ] Diagrama de contexto (pendente)
+- [x] Justificativa de por que o caso é adversarial e não um erro (seção 11)
