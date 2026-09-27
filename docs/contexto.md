@@ -249,3 +249,73 @@ incerteza e sob pressão de tempo**.
 | **A3 — Plataforma** | Distribuir o estoque conforme as regras anunciadas, preservando justiça e disponibilidade | Publicar disponibilidade, aceitar/rejeitar reserva, definir e aplicar TTL, liberar expiradas, limitar por identidade, *rate limiting*, fila de espera, CAPTCHA/verificação, telemetria, cancelar e suspender, escolher a mensagem de resposta | Volume e cadência de requisições, *fingerprint* e origem, histórico de reservas, taxa de conversão reserva→pagamento, correlação entre contas | Capacidade sob pico, custo alto de falso positivo, latência aceitável, pressão do organizador por venda rápida, custo de moderação, exposição reputacional |
 
 ---
+
+## 9. Pressupostos do sistema e como podem falhar
+
+O enunciado exige pelo menos dois pressupostos. Listamos cinco, porque cada um deles vira
+um ponto de exploração rastreável na seção 3.4. **Um pressuposto é uma afirmação que o
+sistema trata como verdadeira sem verificar.**
+
+### P1 — Uma identidade corresponde a uma pessoa
+
+O limite de ingressos por comprador só funciona se cada conta (ou CPF) representar um ser
+humano distinto.
+
+**Como falha:** contas criadas em massa com e-mails descartáveis; uso de documentos de
+terceiros (familiares, laranjas); compra de contas antigas e "aquecidas". Quando P1 cai,
+o limite por identidade deixa de limitar qualquer coisa — ele apenas define quantas
+contas o adversário precisa manter.
+
+### P2 — Uma reserva não paga é devolvida ao estoque e beneficia outro comprador
+
+O TTL da reserva existe para que estoque bloqueado volte a circular.
+
+**Como falha:** o adversário abre reservas em massa **sem intenção de pagar**, e as deixa
+expirar ou as renova em ciclo. O estoque volta ao pool, mas volta para quem está
+monitorando em alta frequência — ou seja, para o próprio adversário. O mecanismo
+projetado para proteger a disponibilidade vira uma ferramenta de **negação de serviço
+sobre o estoque**, e o comprador legítimo vê a disponibilidade oscilar e conclui que
+"esgotou".
+
+### P3 — A cadência e o volume de requisições revelam se o agente é humano
+
+A detecção comportamental pressupõe que tráfego automatizado é estatisticamente distinto
+de tráfego humano.
+
+**Como falha:** nos dois sentidos. O adversário insere atrasos irregulares e imita
+padrões humanos, ficando abaixo do limiar (**falso negativo**). E, no pico da abertura das
+vendas, o comprador legítimo ansioso recarrega a página compulsivamente e **parece um
+bot** (**falso positivo**). O limiar que separa os dois casos não existe de forma limpa.
+
+### P4 — A disponibilidade exibida é a mesma para todos e reflete o estoque real
+
+**Como falha:** por razões de desempenho, a disponibilidade é servida de cache ou de
+réplicas, com atraso de propagação. Compradores diferentes veem números diferentes no
+mesmo instante. Quem consulta a API diretamente, sem passar pela interface, enxerga o
+lote **antes** de quem usa o site — vantagem que não foi concedida por nenhuma regra
+anunciada.
+
+### P5 — O custo de uma tentativa é semelhante para todos os compradores
+
+A ideia implícita de "quem chegar primeiro leva" pressupõe uma disputa entre agentes com
+capacidades comparáveis.
+
+**Como falha:** para A1, cada tentativa custa atenção, tempo e desgaste; para A2, o custo
+marginal de mais uma tentativa é praticamente zero. A mesma regra, aplicada igualmente
+aos dois, produz resultados radicalmente desiguais. **Tratamento igual não produz
+resultado justo quando as capacidades são assimétricas.**
+
+### Resumo dos pressupostos
+
+| ID | Pressuposto | Modo de falha | Ativo colocado em risco |
+|---|---|---|---|
+| **P1** | Uma identidade = uma pessoa | Contas em massa, documentos de terceiros, contas compradas | Justiça da alocação |
+| **P2** | Reserva não paga volta a circular para outro comprador | Imobilização deliberada de estoque via reservas sem intenção de pagar | Disponibilidade do estoque |
+| **P3** | Cadência de requisições distingue humano de bot | Automação que imita humano; humano em pico que parece bot | Justiça da alocação e confiança |
+| **P4** | A disponibilidade exibida é única e fiel | Cache e réplicas com atraso; acesso direto à API | Justiça da alocação |
+| **P5** | O custo de tentar é semelhante para todos | Automação zera o custo marginal da tentativa para o adversário | Justiça da alocação |
+
+> **Entrega para a seção 3.4:** estes cinco pressupostos são os candidatos naturais a
+> pontos de exploração da superfície de ataque. Cada um já vem com o ativo afetado.
+
+---
