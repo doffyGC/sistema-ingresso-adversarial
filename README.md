@@ -78,6 +78,82 @@ com o que veem, e nenhum enxerga o outro por completo.
 | **P4** | A disponibilidade exibida é única e fiel ao estoque real | Cache e réplicas com atraso; quem consulta a API direto vê o lote antes de quem usa o site | Justiça da alocação |
 | **P5** | O custo de tentar é semelhante para todos | A automação zera o custo marginal da tentativa para A2, mas não para A1 — tratamento igual sobre capacidades desiguais não produz resultado justo | Justiça da alocação |
 
+### Diagramas de contexto
+
+**Arquivo-fonte editável das figuras:** FigJam —
+<https://www.figma.com/board/57yNrenUGK0zE7HpL4JfO3>. Cada figura tem endereço próprio no
+board: [Figura 1](https://www.figma.com/board/57yNrenUGK0zE7HpL4JfO3?node-id=22-141),
+[Figura 2](https://www.figma.com/board/57yNrenUGK0zE7HpL4JfO3?node-id=3-71) e
+[legenda](https://www.figma.com/board/57yNrenUGK0zE7HpL4JfO3?node-id=9-207).
+
+#### Figura 1 — Diagrama de contexto (DFD nível 0)
+
+![Diagrama de contexto em notação DFD nível 0](diagramas/contexto.svg)
+
+Notação canônica: o **processo 0** no centro é o sistema inteiro, as **entidades
+externas** são retângulos, e as setas são **fluxos de dados** rotulados. Depósitos de
+dados não aparecem em nível 0 — por isso o estoque de ingressos, que é o ativo central,
+só figura na Figura 2. As setas carregam apenas o identificador do fluxo (`f1` a `f8`);
+o conteúdo de cada um está no dicionário abaixo.
+
+| Fluxo | Origem → Destino | Conteúdo |
+|---|---|---|
+| **f1** | A1 → Sistema | Consulta de disponibilidade, pedido de reserva, confirmação de pagamento |
+| **f2** | Sistema → A1 | Disponibilidade exibida, resultado da tentativa, posição na fila, mensagem de erro, TTL restante |
+| **f3** | A2 → Sistema | As mesmas requisições de f1, automatizadas, paralelizadas e distribuídas entre múltiplas identidades |
+| **f4** | Sistema → A2 | As mesmas respostas de f2, lidas como sinal de calibragem: latência, status, qual identidade caiu e após quantas tentativas |
+| **f5** | Organizador → Sistema | Estoque, lotes, preços e data de abertura |
+| **f6** | Sistema → Organizador | Relatório de vendas e desempenho do lote |
+| **f7** | A2 ⇢ Mercado secundário | Ingressos capturados, colocados à venda com sobrepreço |
+| **f8** | Mercado secundário ⇢ A2 | Preço de revenda praticado — define o retorno esperado de A2 |
+
+> **f2 e f4 carregam exatamente o mesmo conteúdo.** Essa é a assimetria central: a
+> plataforma não consegue responder de forma diferente a A1 e A2, porque no momento da
+> resposta não sabe qual dos dois está do outro lado. O mesmo dado que orienta o
+> comprador legítimo ensina o adversário onde está o limiar de detecção.
+
+> **Desvio declarado:** em DFD estrito, fluxos ligam entidade a processo, nunca entidade
+> a entidade. **f7** e **f8** violam essa regra e por isso aparecem tracejados. O desvio é
+> deliberado — esse par é o ciclo econômico que sustenta o incentivo de A2, e sem ele o
+> diagrama não explicaria por que existe um adversário.
+
+#### Figura 2 — Fluxo interno da interação (complementar)
+
+![Fluxo interno da interação](diagramas/contexto-fluxo.svg)
+
+Abre o processo 0 para mostrar o que a Figura 1 omite por convenção: o **estoque** como
+recurso disputado e os **sinais observáveis** como saída que realimenta os dois
+compradores. A1 e A2 atravessam a **mesma interface**, com o mesmo repertório de ações —
+muda a escala e o custo marginal de cada tentativa, e é por isso que A3 não consegue
+separá-los no momento da decisão. Esse laço de realimentação é o que a seção 3.3
+transforma em rodadas.
+
+#### Legenda (vale para as duas figuras)
+
+![Legenda dos diagramas de contexto](diagramas/contexto-legenda.svg)
+
+A notação carrega três dimensões independentes:
+
+| Dimensão | Valor | Significado |
+|---|---|---|
+| **Forma** | Círculo | Processo — o sistema analisado por inteiro (Fig. 1) |
+| | Retângulo | Entidade externa (Fig. 1) ou ator que toma decisão (Fig. 2) |
+| | Estádio | Recurso disputado, sede do ativo — estoque de ingressos (Fig. 2) |
+| | Paralelogramo | Informação observável — sinais (Fig. 2) |
+| | Hexágono | Entidade fora da fronteira do sistema — mercado secundário (Fig. 2) |
+| **Cor** | Verde | Ator legítimo, que o sistema existe para servir |
+| | Vermelho | Ator adversarial |
+| | Azul | Sistema defensor |
+| | Amarelo | Ativo a preservar |
+| | Cinza | Fora da fronteira do sistema |
+| | Branco | Elemento interno que não é ator nem ativo |
+| **Linha** | Contínua | **Ação ou controle direto** — age sobre o outro ou transfere recurso |
+| | Tracejada | **Observação, realimentação ou incentivo** — informação que pode mudar a decisão seguinte, sem transferir recurso |
+
+> A distinção entre os traços é o que dá sentido ao modelo dinâmico: **as linhas
+> contínuas são o que acontece em uma rodada; as tracejadas são o que permite a
+> adaptação para a rodada seguinte.**
+
 ### Por que este caso é adversarial, e não um erro
 
 Um *bug* de concorrência que vende o mesmo assento duas vezes é um defeito: ninguém
