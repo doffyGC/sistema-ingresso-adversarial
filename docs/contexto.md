@@ -1,8 +1,5 @@
 # 3.1 Descrição do sistema adversarial
 
-> **Seção do enunciado:** 3.1 (Descrição do sistema adversarial)
-> **Status:** rascunho para revisão do grupo
-
 Este documento estabelece a **realidade compartilhada** sobre a qual as demais seções do
 trabalho são construídas. As definições abaixo valem como vocabulário fixo: os jogadores
 do modelo estático (3.2), os participantes das rodadas (3.3) e os ativos afetados pelas
@@ -85,9 +82,6 @@ decisão, se quem está solicitando é A1 ou A2.**
 - **Mercado secundário:** define o preço de revenda e, portanto, o retorno esperado de
   A2. Não toma decisão dentro do sistema, mas é a fonte do incentivo do adversário.
 
-> **Nota:** o jogo estático da seção 3.2 deve ser modelado entre **A2 e A3**.
-> A1 entra na análise como parte afetada (custo colateral), não como jogador da matriz.
-
 ---
 
 ## 3. Objetivos de cada ator
@@ -121,10 +115,6 @@ Ativos secundários, derivados do principal:
 | **Disponibilidade do estoque** | Ingressos não vendidos permanecem efetivamente acessíveis a quem quer comprar | A2, ao imobilizar estoque em reservas que não pretende pagar |
 | **Integridade das reservas** | Uma reserva corresponde a exatamente um ingresso, e expira quando deve | Condições de corrida exploradas deliberadamente |
 | **Confiança no processo** | O comprador acredita que tentar vale a pena | Ambos: A2 ao esvaziar o estoque, A3 ao impor atrito excessivo |
-
-> **Não confundir:** a plataforma é **ator**; o estoque de ingressos é **recurso**; a
-> *justiça da distribuição desse estoque* é o **ativo**. O cambista é **ator**, não
-> ameaça; o que ele faz (acumular via automação) é a **ameaça** — detalhada na seção 3.4.
 
 ---
 
@@ -315,9 +305,6 @@ resultado justo quando as capacidades são assimétricas.**
 | **P4** | A disponibilidade exibida é única e fiel | Cache e réplicas com atraso; acesso direto à API | Justiça da alocação |
 | **P5** | O custo de tentar é semelhante para todos | Automação zera o custo marginal da tentativa para o adversário | Justiça da alocação |
 
-> **Entrega para a seção 3.4:** estes cinco pressupostos são os candidatos naturais a
-> pontos de exploração da superfície de ataque. Cada um já vem com o ativo afetado.
-
 ---
 
 ## 11. Por que este caso é adversarial, e não apenas um erro ou acidente
@@ -378,54 +365,3 @@ dos pontos de exploração e a avaliação de risco não pertencem a esta seçã
 | **F7** | Mensagens e códigos de resposta devolvidos ao cliente | A1, A2 | P3 |
 
 ---
-
-## 13. Entregas desta seção para as seções seguintes
-
-| Destino | O que esta seção entrega |
-|---|---|
-| **Modelo estático (3.2)** | Jogadores do jogo: **A2 × A3**. Repertório de ações de cada um (seção 5) e as restrições de custo (seção 7) que devem justificar a ordem de preferência. A1 entra como custo colateral, não como jogador |
-| **Modelo dinâmico (3.3)** | O que cada lado observa (seção 6): é essa assimetria de observação que define o que se torna visível a cada rodada e dispara a adaptação |
-| **Superfície de ataque (3.4)** | As sete interfaces de fronteira (seção 12) e os cinco pressupostos (seção 9), já mapeados entre si |
-| **Ameaças e riscos (3.4)** | Os ativos da seção 4, para preencher a coluna "ativo afetado" da matriz de risco sem inventar ativos novos |
-| **Resiliência e arquitetura** | A restrição decisiva da seção 7: a plataforma não pode maximizar segurança, porque o custo do falso positivo sobre A1 é alto. Toda defesa proposta precisa declarar seu custo sobre A1 |
-
----
-
-## 14. Referências desta seção
-
-Consolidadas em `fontes/referencias.md`. Fontes utilizadas na delimitação do sistema,
-nos pressupostos e na caracterização dos atores:
-
-1. **BOTS Act** — *Better Online Ticket Sales Act of 2016*, Public Law 114-274 (EUA).
-   Fonte primária que caracteriza legalmente a burla de controles de aquisição em
-   plataformas de ingressos. Base para o pressuposto P1.
-2. **National Consumer Law Center / FTC** — relatórios públicos sobre práticas do mercado
-   de revenda de ingressos e uso de automação na aquisição. Base para a caracterização
-   do ator A2 e do mercado secundário como fonte de incentivo.
-3. **OWASP Automated Threats to Web Applications** — catálogo OAT, em especial
-   **OAT-021 Denial of Inventory**, **OAT-019 Account Creation** e **OAT-006 Expediting**.
-   Base direta para os pressupostos P1, P2 e P5.
-4. **SCHNEIER, Bruce.** *Beyond Fear: Thinking Sensibly About Security in an Uncertain
-   World*. Copernicus, 2003. Base conceitual para a distinção entre falha acidental e
-   ação adversarial (seção 11) e para a noção de custo da defesa sobre o usuário legítimo.
-5. **ANDERSON, Ross.** *Security Engineering*, 3ª ed., Wiley, 2020. Capítulo sobre
-   economia da segurança: assimetria de custos entre atacante e defensor, base da
-   seção 7 e do pressuposto P5.
-
-> As referências devem ser conferidas e formatadas no padrão adotado pelo grupo antes da
-> entrega final.
-
----
-
-## 15. Checklist do enunciado — itens cobertos por esta seção
-
-- [x] Uma interação específica e bem delimitada (seção 1)
-- [x] Principais atores e seus objetivos (seções 2 e 3)
-- [x] Ativo ou propriedade a preservar (seção 4)
-- [x] Ações e capacidades de cada ator (seção 5)
-- [x] Informações observáveis por cada ator (seção 6)
-- [x] Custos e restrições que limitam as ações (seção 7)
-- [x] Tabela consolidada dos elementos principais (seção 8)
-- [x] Pelo menos dois pressupostos e como podem falhar (seção 9 — cinco pressupostos)
-- [ ] Diagrama de contexto (pendente)
-- [x] Justificativa de por que o caso é adversarial e não um erro (seção 11)
