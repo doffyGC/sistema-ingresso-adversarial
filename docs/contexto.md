@@ -307,6 +307,122 @@ resultado justo quando as capacidades são assimétricas.**
 
 ---
 
+## 10. Diagramas de contexto
+
+Esta seção entrega **duas figuras complementares**. A Figura 1 é o diagrama de contexto
+na notação canônica (DFD nível 0) e responde ao item exigido pelo enunciado. A Figura 2
+detalha o interior da interação e serve de insumo para as seções 3.3 e 3.4.
+
+### Figura 1 — Diagrama de contexto (DFD nível 0)
+
+![Diagrama de contexto em notação DFD nível 0](../diagramas/contexto.svg)
+
+**Exportado:** `diagramas/contexto.svg`
+
+A notação segue a convenção de diagrama de contexto (DFD nível 0, Yourdon/DeMarco):
+
+- O **processo 0**, no centro, é o sistema analisado por inteiro. Em um diagrama de
+  contexto o sistema é sempre um único processo — seu interior só é aberto a partir do
+  nível 1.
+- As **entidades externas** são representadas por retângulos e ficam fora da fronteira do
+  sistema.
+- Os **fluxos de dados** são setas rotuladas. Sobre a aresta aparece apenas o
+  identificador (`f1` a `f8`); o conteúdo de cada fluxo está no dicionário abaixo.
+- **Depósitos de dados não aparecem em nível 0.** É por isso que o estoque de ingressos,
+  que é o ativo central deste trabalho, **não** figura na Figura 1 — ele aparece na
+  Figura 2.
+
+> **Desvio declarado da notação.** Na regra estrita do DFD, fluxos ligam entidade externa
+> a processo, nunca uma entidade externa a outra. Os fluxos **f7** e **f8**, entre A2 e o
+> mercado secundário, violam essa regra e por isso aparecem tracejados. Mantivemos o
+> desvio deliberadamente: esse par de fluxos é o **ciclo econômico que sustenta o
+> incentivo de A2** e, sem ele, o diagrama não explicaria por que existe um adversário.
+> Registramos a exceção em vez de omiti-la.
+
+#### Dicionário de fluxos de dados
+
+| Fluxo | Origem → Destino | Conteúdo |
+|---|---|---|
+| **f1** | A1 → Sistema | Consulta de disponibilidade de um setor, pedido de reserva, confirmação de pagamento |
+| **f2** | Sistema → A1 | Disponibilidade exibida, resultado da tentativa, posição na fila, mensagem de erro, TTL restante da reserva |
+| **f3** | A2 → Sistema | As mesmas requisições de f1, porém automatizadas, paralelizadas e distribuídas entre múltiplas identidades |
+| **f4** | Sistema → A2 | As mesmas respostas de f2, porém lidas como **sinal de calibragem**: latência, código de status, qual identidade foi bloqueada e após quantas tentativas |
+| **f5** | Organizador → Sistema | Definição do estoque, dos lotes, dos preços e da data de abertura das vendas |
+| **f6** | Sistema → Organizador | Relatório de vendas e de desempenho do lote |
+| **f7** | A2 ⇢ Mercado secundário | Ingressos capturados, colocados à venda com sobrepreço |
+| **f8** | Mercado secundário ⇢ A2 | Preço de revenda praticado — define o retorno esperado e, portanto, quanto A2 aceita investir em infraestrutura |
+
+> **f2 e f4 carregam exatamente o mesmo conteúdo.** Essa é a assimetria central do
+> sistema: a plataforma não consegue responder de forma diferente a A1 e A2, porque no
+> momento da resposta ela não sabe qual dos dois está do outro lado. O mesmo dado que
+> orienta o comprador legítimo ensina o adversário onde está o limiar de detecção.
+
+### Figura 2 — Fluxo interno da interação (complementar)
+
+![Fluxo interno da interação entre compradores, plataforma, estoque e mercado](../diagramas/contexto-fluxo.svg)
+
+**Exportado:** `diagramas/contexto-fluxo.svg`
+
+A Figura 2 abre o processo 0 e mostra o que a Figura 1 precisa omitir por convenção: o
+**estoque de ingressos** como recurso disputado e sede do ativo, e os **sinais
+observáveis** como saída que realimenta os dois compradores. Não é um DFD nível 1 formal
+— é um diagrama de fluxo da interação, voltado a tornar visível o laço de realimentação
+que a seção 3.3 transforma em rodadas.
+
+### Legenda (vale para as duas figuras)
+
+![Legenda do diagrama de contexto](../diagramas/contexto-legenda.svg)
+
+A notação carrega três dimensões independentes: a **forma** indica o tipo de elemento, a
+**cor** indica o papel do elemento no conflito, e o **traço da linha** indica a natureza
+do relacionamento.
+
+#### Formas — tipo de elemento
+
+| Forma | Significado | Ocorrências |
+|---|---|---|
+| **Círculo** | Processo — o sistema analisado por inteiro | Processo 0 (Figura 1) |
+| **Retângulo** | Entidade externa (Figura 1) ou ator que toma decisão e adapta seu comportamento (Figura 2) | A1, A2, Organizador, Mercado (Fig. 1); A1, A2, A3 (Fig. 2) |
+| **Estádio** (retângulo de extremidades arredondadas) | Recurso disputado; sede do ativo a preservar | Estoque de ingressos (Figura 2) |
+| **Paralelogramo** | Informação observável — saída do sistema que realimenta os atores | Sinais observáveis (Figura 2) |
+| **Hexágono** | Entidade fora da fronteira do sistema analisado | Mercado secundário (Figura 2) |
+
+#### Cores — papel no conflito
+
+| Cor | Significado | Ocorrências |
+|---|---|---|
+| **Verde** | Ator legítimo, que o sistema existe para servir | A1 |
+| **Vermelho** | Ator adversarial | A2 |
+| **Azul** | Sistema defensor | A3 |
+| **Amarelo** | Ativo a preservar | Estoque de ingressos |
+| **Cinza** | Fora da fronteira do sistema analisado | Mercado secundário |
+| **Branco** | Elemento interno que não é ator nem ativo | Sinais observáveis |
+
+#### Linhas — natureza do relacionamento
+
+| Traço | Significado | Ocorrências |
+|---|---|---|
+| **Contínua** | **Ação ou controle direto:** um elemento age sobre o outro ou transfere um recurso | Fig. 1: `f1` a `f6`. Fig. 2: `A1 → A3`, `A2 → A3`, `A3 → estoque`, `A3 → sinais`, `estoque → mercado` |
+| **Tracejada** | **Observação, realimentação ou incentivo:** informação que chega a um ator e pode mudar sua decisão na rodada seguinte, sem transferir recurso | Fig. 1: `f7`, `f8`. Fig. 2: `sinais ⇢ A1`, `sinais ⇢ A2`, `mercado ⇢ A2` |
+
+> A distinção entre os dois traços é o que dá sentido ao modelo dinâmico da seção 3.3:
+> **as linhas contínuas são o que acontece em uma rodada; as tracejadas são o que
+> permite a adaptação para a rodada seguinte.**
+
+### Como ler a Figura 2
+
+- **A1** e **A2** atravessam a **mesma interface** da plataforma, com o mesmo repertório
+  de ações — o que muda é a escala e o custo marginal de cada tentativa (pressuposto P5).
+  É por isso que A3 não consegue separá-los no momento da decisão.
+- Os **sinais observáveis** estão representados como um nó próprio, e não como simples
+  setas de retorno, porque a resposta da plataforma **é ela mesma uma fonte de
+  informação** para os dois compradores. Esse laço de realimentação é o que a seção 3.3
+  transforma em rodadas.
+- O **estoque de ingressos** é o recurso; a propriedade a preservar é a *justiça da sua
+  distribuição*. O **mercado secundário** fica fora da fronteira do sistema, mas é ele
+  que fecha o ciclo econômico de A2 e sustenta o incentivo para a próxima rodada.
+
+
 ## 11. Por que este caso é adversarial, e não apenas um erro ou acidente
 
 Um sistema pode falhar por acidente. Este não é o caso analisado. A distinção importa
