@@ -13,7 +13,9 @@ de um evento de alta demanda.
 
 ## 3.1 Descrição do sistema adversarial
 
-> **Documento completo:** [`docs/contexto.md`](docs/contexto.md)
+> Síntese da seção. O desenvolvimento completo — repertório detalhado de ações, informações
+> observáveis de cada ator, tabela de custos e restrições, delimitação de escopo e discussão
+> da notação — está em [`docs/contexto.md`](docs/contexto.md).
 
 ### A interação analisada
 
@@ -27,27 +29,22 @@ inteira**: o recorte é uma única interação.
 O fluxo coberto tem três passos: **consultar** a disponibilidade de um setor →
 **reservar** temporariamente o ingresso por um prazo (TTL) → **confirmar** o pagamento.
 Se o pagamento não ocorre dentro do prazo, a reserva expira e o ingresso retorna ao
-estoque.
-
-Ficam fora do escopo: catálogo de eventos, emissão fiscal, check-in na portaria,
+estoque. Ficam fora do escopo: catálogo de eventos, emissão fiscal, check-in na portaria,
 reembolso e o mercado secundário em si.
 
-### Atores
+### Atores, ativo e conflito
 
-- **A1 — Comprador legítimo:** pessoa física, agindo manualmente, que quer um ou poucos
-  ingressos para consumo próprio.
-- **A2 — Comprador adversarial (cambista/bot):** agente racional e adaptativo que busca
-  acumular ingressos para revenda com sobrepreço, investindo em automação e em múltiplas
-  identidades.
-- **A3 — Plataforma:** media a interação e decide, **sem saber se quem solicita é A1 ou
-  A2**, quanto estoque expor, se aceita cada reserva, por quanto tempo ela vale e quanto
-  atrito impor.
+| Ator | Objetivo | Do que dispõe | Restrição decisiva |
+|---|---|---|---|
+| **A1 — Comprador legítimo** | Obter o ingresso desejado com esforço razoável | Ações manuais pela interface: consultar, reservar, pagar, aguardar na fila, desistir | Baixa tolerância a atrito; precisa estar online no horário exato da abertura |
+| **A2 — Comprador adversarial** (cambista/bot) | Capturar o máximo de ingressos de alto valor ao menor custo e risco | Tudo de A1, mais automação, paralelismo, múltiplas identidades e rotação de IP/dispositivo | Custo de infraestrutura e de contas, risco de banimento, janela temporal estreita |
+| **A3 — Plataforma** (defensor) | Distribuir o estoque conforme as regras anunciadas, sem bloquear quem é legítimo | Limite por identidade, TTL, *rate limiting*, fila de espera, CAPTCHA, telemetria, cancelamento | **Não sabe, no momento da decisão, se quem solicita é A1 ou A2**; o falso positivo é caro |
 
-Atores de contexto, não modelados como jogadores: o **organizador do evento** (pressiona
-pela venda rápida, limitando o atrito aceitável) e o **mercado secundário** (define o
-retorno esperado de A2).
+Atores de contexto, não modelados como jogadores: o **organizador do evento**, que pressiona
+pela venda rápida e limita o atrito aceitável, e o **mercado secundário**, que define o
+retorno esperado de A2.
 
-### Ativo a preservar
+**Ativo a preservar:**
 
 > **A distribuição justa e controlada do estoque finito de ingressos** — a alocação deve
 > resultar das regras anunciadas pela plataforma, e não da capacidade técnica de
@@ -55,14 +52,6 @@ retorno esperado de A2).
 
 Ativos derivados: disponibilidade do estoque, integridade das reservas e confiança no
 processo de venda.
-
-### Elementos principais
-
-| Ator | Objetivo | Ações ou capacidades | Informações observáveis | Restrições ou custos |
-|---|---|---|---|---|
-| **A1 — Comprador legítimo** | Obter o ingresso desejado com esforço razoável | Consultar, selecionar, reservar, pagar, reenviar tentativa manual, aguardar na fila, desistir | Disponibilidade exibida, resultado da tentativa, mensagem de erro, posição na fila, TTL restante | Estoque finito, prazo curto de pagamento, limite por identidade, precisa estar online no horário, baixa tolerância a atrito |
-| **A2 — Comprador adversarial** | Capturar o máximo de ingressos de alto valor ao menor custo e risco | Tudo de A1 + automação, paralelismo, múltiplas identidades, rotação de IP/dispositivo, monitoramento de alta frequência, imobilização de estoque, imitação de tráfego humano, terceirização de CAPTCHA | Tudo de A1 + latência e códigos de resposta, qual identidade caiu e após quantas tentativas, instante da liberação do lote, taxa de sucesso por estratégia, histórico entre eventos | Custo de infraestrutura e de contas, risco de banimento e de cancelamento do pedido, capital imobilizado, janela temporal estreita, custo de KYC |
-| **A3 — Plataforma** | Distribuir o estoque conforme as regras anunciadas, preservando justiça e disponibilidade | Publicar disponibilidade, aceitar/rejeitar reserva, definir e aplicar TTL, liberar expiradas, limitar por identidade, *rate limiting*, fila de espera, CAPTCHA/verificação, telemetria, cancelar e suspender, escolher a mensagem de resposta | Volume e cadência de requisições, *fingerprint* e origem, histórico de reservas, taxa de conversão reserva→pagamento, correlação entre contas | Capacidade sob pico, custo alto de falso positivo, latência aceitável, pressão do organizador por venda rápida, custo de moderação, exposição reputacional |
 
 A assimetria central: **A2 observa o resultado das regras e pode inferi-las; A3 observa o
 comportamento de A2, mas não sua identidade nem sua intenção.** Ambos os lados aprendem
@@ -90,30 +79,25 @@ board: [Figura 1](https://www.figma.com/board/57yNrenUGK0zE7HpL4JfO3?node-id=22-
 
 ![Diagrama de contexto em notação DFD nível 0](diagramas/contexto.svg)
 
-Notação canônica: o **processo 0** no centro é o sistema inteiro, as **entidades
-externas** são retângulos, e as setas são **fluxos de dados** rotulados. Depósitos de
-dados não aparecem em nível 0 — por isso o estoque de ingressos, que é o ativo central,
-só figura na Figura 2. As setas carregam apenas o identificador do fluxo (`f1` a `f8`);
-o conteúdo de cada um está no dicionário abaixo.
+Notação canônica: o **processo 0** no centro é o sistema inteiro, as **entidades externas**
+são retângulos e as setas são **fluxos de dados** rotulados apenas com o identificador.
+Depósitos de dados não existem em nível 0 — por isso o estoque de ingressos, que é o ativo
+central, só aparece na Figura 2.
 
-| Fluxo | Origem → Destino | Conteúdo |
+| Fluxos | Entre | Conteúdo |
 |---|---|---|
-| **f1** | A1 → Sistema | Consulta de disponibilidade, pedido de reserva, confirmação de pagamento |
-| **f2** | Sistema → A1 | Disponibilidade exibida, resultado da tentativa, posição na fila, mensagem de erro, TTL restante |
-| **f3** | A2 → Sistema | As mesmas requisições de f1, automatizadas, paralelizadas e distribuídas entre múltiplas identidades |
-| **f4** | Sistema → A2 | As mesmas respostas de f2, lidas como sinal de calibragem: latência, status, qual identidade caiu e após quantas tentativas |
-| **f5** | Organizador → Sistema | Estoque, lotes, preços e data de abertura |
-| **f6** | Sistema → Organizador | Relatório de vendas e desempenho do lote |
-| **f7** | A2 ⇢ Mercado secundário | Ingressos capturados, colocados à venda com sobrepreço |
-| **f8** | Mercado secundário ⇢ A2 | Preço de revenda praticado — define o retorno esperado de A2 |
+| **f1 / f2** | A1 ↔ Sistema | Consulta de disponibilidade, pedido de reserva e confirmação de pagamento; de volta, disponibilidade exibida, resultado da tentativa, posição na fila e TTL restante |
+| **f3 / f4** | A2 ↔ Sistema | As mesmas requisições e respostas, porém automatizadas, paralelizadas entre identidades e lidas como sinal de calibragem: latência, status, qual identidade caiu e após quantas tentativas |
+| **f5 / f6** | Organizador ↔ Sistema | Estoque, lotes, preços e data de abertura; de volta, relatório de vendas e desempenho do lote |
+| **f7 / f8** | A2 ⇢ Mercado secundário | Ingressos capturados, colocados à venda com sobrepreço; de volta, o preço de revenda praticado, que define o retorno esperado de A2 |
 
 > **f2 e f4 carregam exatamente o mesmo conteúdo.** Essa é a assimetria central: a
 > plataforma não consegue responder de forma diferente a A1 e A2, porque no momento da
-> resposta não sabe qual dos dois está do outro lado. O mesmo dado que orienta o
-> comprador legítimo ensina o adversário onde está o limiar de detecção.
+> resposta não sabe qual dos dois está do outro lado. O mesmo dado que orienta o comprador
+> legítimo ensina o adversário onde está o limiar de detecção.
 
-> **Desvio declarado:** em DFD estrito, fluxos ligam entidade a processo, nunca entidade
-> a entidade. **f7** e **f8** violam essa regra e por isso aparecem tracejados. O desvio é
+> **Desvio declarado:** em DFD estrito, fluxos ligam entidade a processo, nunca entidade a
+> entidade. **f7** e **f8** violam essa regra e por isso aparecem tracejados. O desvio é
 > deliberado — esse par é o ciclo econômico que sustenta o incentivo de A2, e sem ele o
 > diagrama não explicaria por que existe um adversário.
 
@@ -122,57 +106,45 @@ o conteúdo de cada um está no dicionário abaixo.
 ![Fluxo interno da interação](diagramas/contexto-fluxo.svg)
 
 Abre o processo 0 para mostrar o que a Figura 1 omite por convenção: o **estoque** como
-recurso disputado e os **sinais observáveis** como saída que realimenta os dois
-compradores. A1 e A2 atravessam a **mesma interface**, com o mesmo repertório de ações —
-muda a escala e o custo marginal de cada tentativa, e é por isso que A3 não consegue
-separá-los no momento da decisão. Esse laço de realimentação é o que a seção 3.3
-transforma em rodadas.
+recurso disputado e os **sinais observáveis** como saída que realimenta os dois compradores.
+A1 e A2 atravessam a **mesma interface**, com o mesmo repertório de ações — muda a escala e
+o custo marginal de cada tentativa, e é por isso que A3 não consegue separá-los no momento
+da decisão. Esse laço de realimentação é o que a seção 3.3 transforma em rodadas.
 
 #### Legenda (vale para as duas figuras)
 
 ![Legenda dos diagramas de contexto](diagramas/contexto-legenda.svg)
 
-A notação carrega três dimensões independentes:
+A notação carrega três dimensões independentes: a **forma** indica o tipo de elemento
+(processo, entidade externa, recurso disputado, informação observável); a **cor** indica o
+papel no conflito (verde legítimo, vermelho adversarial, azul defensor, amarelo ativo,
+cinza fora da fronteira); e o **traço da linha** indica a natureza do relacionamento —
+contínuo para ação ou controle direto, tracejado para observação, realimentação ou
+incentivo.
 
-| Dimensão | Valor | Significado |
-|---|---|---|
-| **Forma** | Círculo | Processo — o sistema analisado por inteiro (Fig. 1) |
-| | Retângulo | Entidade externa (Fig. 1) ou ator que toma decisão (Fig. 2) |
-| | Estádio | Recurso disputado, sede do ativo — estoque de ingressos (Fig. 2) |
-| | Paralelogramo | Informação observável — sinais (Fig. 2) |
-| | Hexágono | Entidade fora da fronteira do sistema — mercado secundário (Fig. 2) |
-| **Cor** | Verde | Ator legítimo, que o sistema existe para servir |
-| | Vermelho | Ator adversarial |
-| | Azul | Sistema defensor |
-| | Amarelo | Ativo a preservar |
-| | Cinza | Fora da fronteira do sistema |
-| | Branco | Elemento interno que não é ator nem ativo |
-| **Linha** | Contínua | **Ação ou controle direto** — age sobre o outro ou transfere recurso |
-| | Tracejada | **Observação, realimentação ou incentivo** — informação que pode mudar a decisão seguinte, sem transferir recurso |
-
-> A distinção entre os traços é o que dá sentido ao modelo dinâmico: **as linhas
-> contínuas são o que acontece em uma rodada; as tracejadas são o que permite a
-> adaptação para a rodada seguinte.**
+> A distinção entre os traços é o que dá sentido ao modelo dinâmico: **as linhas contínuas
+> são o que acontece em uma rodada; as tracejadas são o que permite a adaptação para a
+> rodada seguinte.**
 
 ### Por que este caso é adversarial, e não um erro
 
-Um *bug* de concorrência que vende o mesmo assento duas vezes é um defeito: ninguém
-escolheu que acontecesse e ele não reage à correção. O caso aqui é diferente:
+Um *bug* de concorrência que vende o mesmo assento duas vezes é um defeito: ninguém escolheu
+que acontecesse e ele não reage à correção. O caso aqui é diferente:
 
 1. **Há intenção e escolha** — A2 avalia custo, retorno e risco, e decide.
-2. **Os objetivos conflitam de fato** — o estoque é finito; cada ingresso capturado por
-   A2 é um ingresso a menos para A1.
+2. **Os objetivos conflitam de fato** — o estoque é finito; cada ingresso capturado por A2 é
+   um ingresso a menos para A1.
 3. **A regra é o alvo, não o obstáculo acidental** — A2 usa o sistema exatamente como
-   projetado, em volume e velocidade que o projeto não previu. Não há erro a corrigir:
-   há um incentivo a redesenhar.
-4. **Há aprendizado dos dois lados** — cada bloqueio, CAPTCHA ou mensagem de erro informa
-   A2 sobre onde está o limiar, e cada defesa nova produz uma contramedida nova.
-5. **A defesa tem custo sobre terceiros** — endurecer a regra contra A2 atinge A1, porque
-   A3 não consegue distingui-los no momento da decisão.
+   projetado, em volume e velocidade que o projeto não previu. Não há erro a corrigir: há um
+   incentivo a redesenhar.
+4. **Há aprendizado dos dois lados** — cada bloqueio, CAPTCHA ou mensagem de erro informa A2
+   sobre onde está o limiar, e cada defesa nova produz uma contramedida nova.
+5. **A defesa tem custo sobre terceiros** — endurecer a regra contra A2 atinge A1, porque A3
+   não consegue distingui-los no momento da decisão.
 
-> O que torna este sistema adversarial não é a existência de uma falha, mas a existência
-> de **um agente que lucra com a regra funcionando como projetada, e que reage a toda
-> tentativa de impedi-lo.**
+> O que torna este sistema adversarial não é a existência de uma falha, mas a existência de
+> **um agente que lucra com a regra funcionando como projetada, e que reage a toda tentativa
+> de impedi-lo.**
 
 ---
 
