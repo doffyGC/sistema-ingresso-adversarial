@@ -266,3 +266,20 @@ sistema-ingresso-adversarial/
 ## Referências
 
 Ver [`fontes/referencias.md`](fontes/referencias.md).
+
+## Declaração de uso de IA generativa
+
+Conforme a seção 6 do enunciado, o grupo declara as ferramentas de IA generativa
+utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado.
+
+| Seção | Ferramenta | Tarefa |
+|---|---|---|
+| 3.1 | ChatGPT (OpenAI) | *Brainstorming* da escolha do sistema e do recorte da interação |
+| 3.1 | Claude (Anthropic) | Apoio à redação e estruturação |
+| 3.2 | *a preencher pelo autor da seção* | |
+| 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
+
+**Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à
+aderência ao enunciado, à consistência com o vocabulário fixado na seção 3.1 (atores,
+pressupostos, fluxos e interfaces) e à existência e correção das fontes citadas. O grupo é
+responsável por todas as decisões apresentadas e consegue explicá-las.
