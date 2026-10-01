@@ -110,9 +110,57 @@ que acontecesse e ele não reage à correção. O caso aqui é diferente:
 
 ## 3.2 Modelo estratégico estático
 
-> *Pendente.*
-> Insumo disponível: jogadores **A2 × A3**, repertório de ações e restrições de custo em
-> [`docs/contexto.md`](docs/contexto.md), seções 5 e 7.
+> **Desenvolvimento completo em [`docs/modelo-estatico.md`](docs/modelo-estatico.md):**
+> justificativa detalhada de cada payoff, cálculo do equilíbrio misto e limitações. Abaixo,
+> o resumo.
+
+A decisão central é modelada como um jogo entre **A2 (comprador adversarial)** e
+**A3 (plataforma)**, em uma única interação na abertura das vendas, sem que um jogador
+observe a escolha do outro. A1 não é jogador; os efeitos sobre ele entram na avaliação dos
+resultados.
+
+**Ações**
+
+- **A2 — Regular (R):** poucas tentativas, sem escalar por automação ou múltiplas
+  identidades. **Intensivo (I):** automatiza e paraleliza consultas e reservas, podendo usar
+  múltiplas identidades.
+- **A3 — Permitir (P):** processa as solicitações com os controles ordinários, sem barreira
+  reforçada. **Controlar (C):** acrescenta limitação de ritmo, fila ou verificação para
+  reduzir tentativas em escala.
+
+**Matriz de payoffs** — par na ordem **(A2, A3)**, escala ordinal de 0 a 4 (maior = mais
+preferido; não são valores monetários nem probabilidades):
+
+| A2 \ A3 | Permitir (P) | Controlar (C) |
+|---|---:|---:|
+| **Regular (R)** | **(3, 3)** | **(2, 1)** |
+| **Intensivo (I)** | **(4, 0)** | **(1, 2)** |
+
+- **(R, P) = (3, 3):** A2 tem chance razoável a baixo custo; A3 mantém a experiência fluida.
+- **(R, C) = (2, 1):** A2 enfrenta barreiras sem motivo; A3 paga custo operacional e arrisca
+  falsos positivos sobre A1.
+- **(I, P) = (4, 0):** A2 converte escala em vantagem sobre o estoque; A3 perde a justiça da
+  alocação, e A1 perde acesso.
+- **(I, C) = (1, 2):** os controles encarecem A2; A3 protege o estoque, mas ainda paga custo
+  e risco de atrasar ou bloquear A1.
+
+**Melhores respostas:** se A3 permite, A2 prefere Intensivo (`4 > 3`); se A3 controla, A2
+prefere Regular (`2 > 1`). Se A2 é Regular, A3 prefere Permitir (`3 > 1`); se A2 é
+Intensivo, A3 prefere Controlar (`2 > 0`).
+
+**Estratégia dominante:** nenhum jogador tem — a melhor ação de cada um depende da ação do
+outro.
+
+**Equilíbrio:** não há resultado em estratégias puras no qual nenhum jogador melhore mudando
+sozinho; em toda célula, pelo menos um tem incentivo a desviar. Há um **equilíbrio misto**
+com cada jogador escolhendo cada ação com probabilidade 1/2 — propriedade matemática dos
+payoffs adotados, não previsão de comportamento real.
+
+**É bom para o sistema e para A1?** Nenhuma combinação é estável. Sem controle, A2 escala e
+a distribuição deixa de ser justa; com controle, A3 reduz a vantagem de A2 mas impõe custo e
+atrito a A1, que A3 não consegue distinguir de A2 — o controle gera falsos positivos. A
+melhor decisão depende sempre da escolha do outro, e é essa instabilidade que a seção 3.3
+desenvolve em rodadas.
 
 ## 3.3 Modelo estratégico dinâmico
 
@@ -199,7 +247,7 @@ sistema-ingresso-adversarial/
 ├── README.md                     relatório principal
 ├── docs/
 │   ├── contexto.md               3.1
-│   ├── modelo-estatico.md        3.2        (pendente)
+│   ├── modelo-estatico.md        3.2
 │   ├── modelo-dinamico.md        3.3
 │   ├── ameacas.md                3.4        (pendente)
 │   ├── riscos.md                 3.4        (pendente)
