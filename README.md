@@ -116,9 +116,69 @@ que acontecesse e ele não reage à correção. O caso aqui é diferente:
 
 ## 3.3 Modelo estratégico dinâmico
 
-> *Pendente.*
-> Insumo disponível: assimetria de observação em [`docs/contexto.md`](docs/contexto.md),
-> seção 6.
+> **Desenvolvimento completo em [`docs/modelo-dinamico.md`](docs/modelo-dinamico.md):** o
+> passo a passo de cada rodada, o que cada uma herda da anterior e os limites do modelo.
+> Abaixo, o resumo.
+
+A matriz do 3.2 não tem equilíbrio puro: as melhores respostas giram em ciclo. Na interação
+real, A2 não recua diante do controle: **mantém o objetivo e muda a ação**, contornando o
+controle, e o repertório de ações cresce a cada rodada. Uma rodada é uma abertura de vendas
+e percorre o ciclo **ação → resposta → observação → adaptação**.
+
+**Estado inicial:** limite de 4 ingressos por identidade, TTL de 10 minutos, sem controle de
+ritmo; o lote esgota em segundos para poucas origens automatizadas — célula (I, P) do 3.2.
+Os limiares numéricos abaixo são ilustrativos.
+
+| Rodada | Ação do participante (A2) | Resposta do sistema ou defensor (A3) | O que se torna observável? | Adaptação para a rodada seguinte | Custo para A1 |
+|-:|---|---|---|---|---|
+| **1** | Automação e monitoramento de alta frequência, poucas contas | *Rate limit* por IP (30 req/min) com 429 explícito | **A2:** limiar exato e a variável que o controla (IP). **A3:** volume concentrado em poucas origens | **A2:** distribuir abaixo do limiar. **A3:** registrar *fingerprint* e idade das contas | Humano ansioso bloqueado (falso positivo, P3) |
+| **2** | Rotação de IP, contas criadas em lote, cadência humana | Fila sorteada + CAPTCHA na reserva | **A2:** fila premia número de contas; CAPTCHA é custo fixo. **A3:** *fingerprints* repetidas, contas da véspera | **A2:** terceirizar CAPTCHA, multiplicar contas, reter estoque. **A3:** medir conversão por cluster | Fila ajuda; CAPTCHA gera desistência |
+| **3** | Reservas em massa sem pagamento (P2, OAT-021), CAPTCHA terceirizado | TTL de 5 min, limite por cluster, pré-autorização, mensagem genérica, cancelamento *a posteriori* | **A2:** sinal genérico e atrasado. **A3:** ciclo de 10 min some, conversão sobe | **A2:** identidades que não se correlacionam. **A3:** analisar padrão de compra | Prazo curto, exclusão de quem não tem cartão, risco de cancelamento indevido |
+| **4** | Contas antigas compradas, cartões distintos (P1) | Verificação de identidade seletiva | **A2:** quais contas são verificadas. **A3:** abandono na etapa de verificação | **A2:** identidades de pessoas reais (laranjas) abaixo do critério | Cadastro mais longo, exposição de dados |
+
+As rodadas mostram que:
+
+- **a resposta produz informação** — o 429 da rodada 1 entrega o limiar a A2 (f2 = f4);
+- **o objetivo se mantém e a ação muda** — A2 quer sempre o mesmo estoque, e troca de meio a cada rodada;
+- **o defensor também observa e adapta** — cada resposta de A3 nasce de uma anomalia da rodada anterior;
+- **decisões passadas mudam as possibilidades** — A2 só fica abaixo do limiar porque a rodada 1 o revelou; a fila sorteada da rodada 2 transformou contas em bilhetes e criou o cluster que denuncia A2 na rodada 3;
+- **a defesa custa a A1** — os controles se somam e consomem o orçamento de atrito do comprador legítimo.
+
+A virada é a rodada 3: A3 passa a controlar **a informação**, não só a regra. Mensagem
+genérica, cancelamento *a posteriori* e marcação silenciosa degradam o sinal de A2 — e
+também a transparência para A1.
+
+### Diagrama do ciclo adaptativo
+
+![Ciclo adaptativo em quatro rodadas](diagramas/ciclo-adaptativo.svg)
+
+Fonte editável em `diagramas/ciclo-adaptativo.mmd` (Mermaid). Cores da legenda do 3.1:
+vermelho A2, azul A3, branco observável, verde A1. Setas contínuas ocorrem dentro da rodada;
+tracejadas são a adaptação para a seguinte.
+
+### Perguntas de fechamento
+
+- **Quem observa quem?** A3 observa o comportamento de A2, não sua identidade nem sua
+  intenção. A2 observa as respostas de A3, não as regras. A1 vê as mesmas respostas que A2,
+  sem poder usá-las como experimento.
+- **O que cada lado consegue mudar?** A2 muda *como* tenta: velocidade, origens, número e
+  qualidade das identidades, e o objetivo tático (comprar ou reter). A3 muda as regras e,
+  desde a rodada 3, quanta informação cada resposta carrega. Nenhum dos dois controla o
+  preço de revenda (f8).
+- **O que dispara uma adaptação?** Para A2, a queda na taxa de sucesso de uma estratégia.
+  Para A3, uma anomalia agregada confirmada ao longo de uma abertura: esgotamento em
+  segundos, *fingerprints* repetidas, conversão baixa, contas antigas que só compram em
+  alta demanda.
+- **Qual é o custo da adaptação?** Para A2: infraestrutura, identidades cada vez mais caras
+  (em lote → aquecidas → pessoas reais), resolução de CAPTCHA, capital retido e perdas por
+  cancelamento. Para A3: operação dos controles, moderação e perda de transparência — e o
+  atrito e os falsos positivos impostos a A1, que voltam como perda de receita e reputação.
+- **Onde surge a corrida armamentista?** No CAPTCHA (rodadas 2–3), que A2 compra pronto e
+  cujo endurecimento pesa mais sobre A1 do que sobre A2; e, de forma mais grave, na
+  identidade (rodadas 3–4 em diante): correlação → contas aquecidas → verificação →
+  laranjas. A corrida só se estabiliza quando o custo por ingresso de A2 supera a margem de
+  revenda — por isso A3 não precisa detectar todo A2, e sim encarecer o que A2 não consegue
+  automatizar sem consumir o orçamento de atrito de A1.
 
 ## 3.4 Ameaças e riscos
 
@@ -140,7 +200,7 @@ sistema-ingresso-adversarial/
 ├── docs/
 │   ├── contexto.md               3.1
 │   ├── modelo-estatico.md        3.2        (pendente)
-│   ├── modelo-dinamico.md        3.3        (pendente)
+│   ├── modelo-dinamico.md        3.3
 │   ├── ameacas.md                3.4        (pendente)
 │   ├── riscos.md                 3.4        (pendente)
 │   └── resiliencia.md                       (pendente)
@@ -148,7 +208,7 @@ sistema-ingresso-adversarial/
 │   ├── contexto.svg              Fig. 1 - DFD nivel 0
 │   ├── contexto-fluxo.svg        Fig. 2 - fluxo interno
 │   ├── contexto-legenda.svg      legenda das duas
-│   ├── ciclo-adaptativo.*                   (pendente)
+│   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte (+ .svg, .png)
 │   ├── superficie-ataque.*                  (pendente)
 │   └── arquitetura-t2.*                     (pendente)
 └── fontes/
