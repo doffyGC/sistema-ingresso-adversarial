@@ -2,7 +2,8 @@
 
 Este documento pontua os cenários de ameaça de [`ameacas.md`](ameacas.md) e escolhe a
 ameaça prioritária, tratada em [`resiliencia.md`](resiliencia.md). Os ativos são os da
-seção 3.1 (seção 4); os pressupostos, P1–P5 (seção 9).
+seção 3.1 (seção 4); os pressupostos, P1–P5 (seção 9); os pontos de exploração, PE1–PE8 de
+[`superficie-ataque.md`](superficie-ataque.md).
 
 ---
 
@@ -49,10 +50,13 @@ ordem.
 
 ## 2. Tabela de riscos
 
-> **Pendente:** as linhas dependem dos cenários e pontos de exploração de
-> [`ameacas.md`](ameacas.md). A linha da imobilização de estoque está pré-preenchida para
-> que a escolha da ameaça prioritária seja verificável; o ID e o texto devem ser trocados
-> pelos daquele arquivo.
+Cada cenário parte de uma das cadeias de pontos de exploração de
+[`superficie-ataque.md`](superficie-ataque.md), seção 5: a cadeia diz **por onde** A2 age, e
+o cenário acrescenta quem age, com que intenção e com que impacto.
+
+> **Pendente:** os IDs `T1`–`T3` e a redação dos cenários são provisórios e devem ser
+> trocados pelos de [`ameacas.md`](ameacas.md). As notas não dependem da redação, e sim da
+> cadeia de pontos e dos ativos atingidos.
 
 > **Atenção aos IDs:** o modelo de tabela do enunciado usa `A1`, `A2`, `A3` para os
 > cenários, mas esses IDs já são os **atores** da seção 3.1. Sugestão: usar `T1`, `T2`,
@@ -60,9 +64,9 @@ ordem.
 
 | ID | Cenário de ameaça | Ponto de exploração | Pressuposto ou fraqueza | Ativo afetado | Probabilidade | Impacto | Risco |
 |-|-|-|-|-|-:|-:|-:|
-| T? | A2 abre reservas em massa sem intenção de pagar e recaptura o estoque quando ele expira | F2 (criação de reserva), F3 (expiração e devolução) | P2 — reserva não paga volta a circular para outro comprador | Disponibilidade do estoque; justiça da alocação | 3 | 3 | **9** |
-| T? | *pendente* | | | | | | |
-| T? | *pendente* | | | | | | |
+| T1 | **Imobilização e recaptura:** A2 abre reservas em massa sem intenção de pagar e recaptura o estoque quando ele expira | PE2 → PE3 → PE1 (F2, F3, F1) | P2, P4, P5 | Disponibilidade do estoque; justiça da alocação | 3 | 3 | **9** |
+| T2 | **Escala por identidades:** A2 multiplica contas para multiplicar o limite de 4 ingressos e as posições na fila, e dispara requisições simultâneas para tirar mais de cada conta | PE4 → PE8, com PE5 (F5, F6, F2) | P1, P5; verificação do limite sem atomicidade | Justiça da alocação; integridade das reservas | 2 | 3 | **6** |
+| T3 | **Calibragem pelos limiares:** A2 usa as mensagens de rejeição para descobrir o limiar de ritmo e passa a operar logo abaixo dele, rotacionando IPs e contas; o limiar fixo bloqueia A1 | PE7 → PE6 → PE4 (F7, F1, F2) | P3, P5 | Justiça da alocação; confiança no processo | 3 | 2 | **6** |
 
 ### Justificativa das notas
 
@@ -76,13 +80,39 @@ A escala não depende de quantas contas A2 tem, e sim de quantas reservas conseg
 abertas — pode cobrir o lote inteiro. A1 vê o estoque oscilar e conclui que esgotou, o que
 atinge também a confiança no processo.
 
+**Escala por identidades — probabilidade 2.** Cada ingresso a mais exige uma conta a mais
+(PE4), e cada posição a mais na fila também (PE8). Contas criadas em lote ou compradas são
+infraestrutura de mercado, mas com custo por conta — e a rodada 2 já mostrou A2 pagando
+esse custo. O paralelismo de PE5 é gratuito, mas só multiplica o que cada conta já obtém.
+
+**Escala por identidades — impacto 3.** Atinge dois ativos: a justiça da alocação, porque o
+lote vai para quem controla mais contas, e a integridade das reservas, porque requisições
+simultâneas fazem uma conta passar do limite (PE5). O desvio cresce com o número de contas,
+sem teto imposto pelo sistema atual.
+
+**Calibragem — probabilidade 3.** Descobrir o limiar não custa nada: o `429` explícito é
+determinístico e entregou o limiar em minutos na rodada 1 (PE7). Respeitá-lo exige só
+cadência controlada e rotação de origem (PE6).
+
+**Calibragem — impacto 2.** Sozinha, a calibragem não move o estoque: ela torna os outros
+cenários indetectáveis pelo controle de ritmo. O dano direto é o do limiar fixo sobre A1,
+que é bloqueado ao recarregar a página — um custo visível em uma abertura, atingindo a
+confiança no processo. Não chega a 3 porque o falso positivo é reversível (o bloqueio
+dura um minuto) e não tira o ingresso de quem já o tem.
+
 ---
 
 ## 3. Ameaça prioritária
 
-Com risco 9, a imobilização de estoque é a ameaça prioritária, **a confirmar** quando os
-outros cenários forem pontuados: só outro cenário com risco 9 poderia disputar a
-prioridade, e o desempate acima favorece a imobilização, por atingir dois ativos.
+Com risco 9, a imobilização de estoque (T1) é a ameaça prioritária: os outros dois
+cenários pontuam 6, e só outro cenário com risco 9 poderia disputar a prioridade. Mesmo
+nesse caso, o desempate acima favoreceria a imobilização, por atingir dois ativos ao custo
+mais baixo para A2.
+
+T2 e T3 ficam na faixa alta e também exigem resposta, mas não são independentes de T1: a
+adaptação esperada de A2 à resposta da imobilização é justamente migrar para T2
+([`resiliencia.md`](resiliencia.md), seção 3), e T3 é o que A2 usa para calibrar qualquer
+um dos dois.
 
 A resposta, a adaptação esperada de A2 e o risco residual estão em
 [`resiliencia.md`](resiliencia.md).
@@ -100,8 +130,8 @@ Pontuação da mesma ameaça **depois** da resposta R1–R6 de [`resiliencia.md`
 
 **Probabilidade cai de 3 para 2.** Com o limite de reservas ativas (R2) e a pré-autorização
 (R3), cada ingresso retido passa a exigir uma identidade com cartão próprio — infraestrutura
-que se compra, mas com custo por tentativa. A recaptura, que tornava a imobilização
-lucrativa, deixa de render (R1).
+que se compra, mas com custo por tentativa (PE2 deixa de ser gratuito). A recaptura, que
+tornava a imobilização lucrativa, deixa de render (R1 fecha PE3).
 
 **Impacto cai de 3 para 2.** O ingresso liberado volta para a fila de espera, e não para o
 adversário (R1): a justiça da alocação deixa de ser atingida pela expiração. Continua
@@ -111,4 +141,5 @@ número de identidades de A2.
 **Por que não cai mais.** A2 com identidades reais e capital continua imobilizando em escala
 menor, e a detecção (R5, R6) só se confirma ao longo de uma abertura. Baixar o risco para
 a faixa baixa exige atuar sobre P1 — a verificação de identidade da rodada 4 —, e não
-sobre a reserva.
+sobre a reserva. Em termos de superfície, o que sobra de T1 passa por PE4 e PE8: é o
+cenário T2.
