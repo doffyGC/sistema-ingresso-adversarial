@@ -245,8 +245,8 @@ Cada ponto liga uma funcionalidade à regra de que ela depende: "a funcionalidad
 | **PE3** Devolução previsível e pública | Expiração | F3 → F1 | O ingresso volta à disponibilidade pública quando o TTL fixo vence | P2, P4 | 3 | Projeto original |
 | **PE4** Limite por conta, conta barata | Identidade, Reserva | F5, F2 | Limite de 4 por conta; conta sem verificação de pessoa | P1 | 2, 4 | Projeto original |
 | **PE5** Limite sob requisições simultâneas | Reserva | F2 | O limite é lido e depois gravado, sem atomicidade | Fraqueza de implementação; P5 | n/a | Projeto original |
-| **PE6** Limiar fixo por IP | Borda da API | F1, F2 | 30 req/min contadas por IP | P3, P5 | 1, 2 | Criado na rodada 1 |
-| **PE7** Mensagem como oráculo | Mensagens de resposta | F7 | Rejeição com código específico e determinística | P3 | 1 | Criado na rodada 1 |
+| **PE6** Limiar fixo por IP | Borda da API | F1, F2 | 30 req/min contadas por IP e por sessão | P3, P5 | 1, 2 | Criado na rodada 1 |
+| **PE7** Mensagem como oráculo | Borda da API (respostas) | F7 | Rejeição com código específico e determinística | P3 | 1 | Criado na rodada 1 |
 | **PE8** Cada conta é um bilhete | Fila de espera | F6 | Uma posição sorteada por conta | P1, P5 | 2, 3 | Criado na rodada 2 |
 
 Todas as interfaces F1 a F7 e todos os pressupostos P1 a P5 têm pelo menos um ponto. Os pontos rendem mais quando encadeados: **PE2 → PE3 → PE1** é a imobilização com recaptura (base da ameaça prioritária), **PE4 → PE8** com PE5 é a escala por identidades, e **PE7 → PE6 → PE4** é a calibragem pelos limiares.

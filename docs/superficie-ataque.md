@@ -13,7 +13,7 @@ O enunciado pede pontos "presentes no sistema ou nas rodadas modeladas". A super
 - as **regras do estado inicial** do modelo dinâmico (3.3): limite de 4 ingressos por identidade, reserva com TTL de 10 minutos, sem controle de ritmo;
 - mais os **controles acrescentados por A3 nas rodadas 1 e 2**: limite de 30 requisições por minuto por IP com resposta `429` explícita, fila de espera com ordem sorteada e CAPTCHA no passo de reserva.
 
-Os controles da rodada 3 em diante e os controles R1 a R6 são respostas a esta superfície, e não fazem parte dela.
+Os controles das rodadas 3 e 4 (TTL de 5 minutos, limite por cluster, pré-autorização, mensagem genérica, cancelamento *a posteriori*, verificação de identidade seletiva) e os controles R1 a R6 de [`resiliencia.md`](resiliencia.md) são respostas a esta superfície. Eles também criam superfície nova (por exemplo, o critério de seleção da verificação, que A2 passa a estimar na rodada 4), mas essa superfície já é tratada como "informação que a resposta revela" e "próxima adaptação" em [`resiliencia.md`](resiliencia.md), seções 2 e 3, e por isso não é repetida aqui.
 
 ### Fronteira de confiança
 
@@ -23,17 +23,17 @@ Tudo o que chega do cliente é controlado pelo comprador, seja A1 ou A2: cabeça
 
 | Componente | Interface | O que expõe para fora da fronteira |
 |---|---|---|
-| **Borda da API** | todas | Autenticação de sessão e controle de ritmo por IP (rodada 1) |
+| **Borda da API** | entrada de todas | Autenticação de sessão e controle de ritmo por IP e por sessão (rodada 1) |
 | **Disponibilidade** | F1 | Quantidade disponível por setor, servida de cache e réplicas |
 | **Reserva** | F2 | Criação da reserva, verificação do limite por identidade e CAPTCHA (rodada 2) |
 | **Expiração** | F3 | Nada é chamado diretamente; o temporizador devolve o ingresso à disponibilidade pública |
 | **Pagamento** | F4 | Confirmação que converte a reserva em compra |
 | **Identidade** | F5 | Cadastro e login; a identidade é a conta, com e-mail e CPF declarados |
 | **Fila de espera** | F6 | Posição sorteada por conta antes da abertura (rodada 2) |
-| **Mensagens de resposta** | F7 | Código, texto e latência de cada resposta, inclusive rejeições |
+| **Borda da API** (respostas) | F7 | Código, texto e latência de cada resposta, inclusive rejeições. Na arquitetura do Trabalho 2, é a borda que monta toda resposta ao cliente |
 | **Estoque** | (interno) | Não é acessível diretamente; é o ativo que todos os fluxos acima alteram |
 
-A **Telemetria** não é superfície: A2 não a lê nem a escreve diretamente. Ele só a influencia pelo comportamento que gera, e esse caminho aparece no ponto PE6.
+A **Telemetria** não é superfície: A2 não a lê nem a escreve diretamente. Ele só a influencia pelo comportamento que gera: imitando cadência humana (P3), produz telemetria que parece de A1. Esse caminho aparece no ponto PE6.
 
 ---
 
@@ -112,9 +112,9 @@ Este ponto não vem de um dos pressupostos P1 a P5, e sim de uma **fraqueza de i
 
 | Componente | Interface | Regra | Ponto de exploração |
 |---|---|---|---|
-| Borda da API | F1 e F2 | Limite de 30 requisições por minuto, contado por IP | Rotação de IP por proxies e cadência mantida logo abaixo do limiar; do outro lado, o humano ansioso que recarrega a página é bloqueado |
+| Borda da API | F1 e F2 | Limite de 30 requisições por minuto, contado por IP e por sessão | Rotação de IP por proxies e cadência mantida logo abaixo do limiar; do outro lado, o humano ansioso que recarrega a página é bloqueado |
 
-O controle de ritmo depende da regra de que **volume por IP separa bot de humano**, criando um ponto em que **a variável de controle é barata para A2 trocar e o limiar, uma vez conhecido, é fácil de respeitar**. O mesmo ponto atinge A1 no sentido oposto: um limiar fixo bloqueia quem age como bot sem ser.
+O controle de ritmo depende da regra de que **volume por IP e por sessão separa bot de humano**, criando um ponto em que **as variáveis de controle são baratas para A2 trocar (proxies e sessões novas) e o limiar, uma vez conhecido, é fácil de respeitar**. O mesmo ponto atinge A1 no sentido oposto: um limiar fixo bloqueia quem age como bot sem ser.
 
 - **Pressupostos:** P3 (a cadência revela se o agente é humano) e P5.
 - **Onde aparece:** criado pela resposta de A3 na rodada 1 e contornado na rodada 2.
@@ -125,13 +125,13 @@ O controle de ritmo depende da regra de que **volume por IP separa bot de humano
 
 | Componente | Interface | Regra | Ponto de exploração |
 |---|---|---|---|
-| Mensagens de resposta | F7 | Cada rejeição devolve um código específico (`429`, limite de conta, sem estoque), de forma determinística e imediata | Cada requisição vira um experimento: repetindo-a, A2 descobre qual regra o barrou, em que limiar e por qual variável |
+| Borda da API (respostas) | F7 | Cada rejeição devolve um código específico (`429`, limite de conta, sem estoque), de forma determinística e imediata | Cada requisição vira um experimento: repetindo-a, A2 descobre qual regra o barrou, em que limiar e por qual variável |
 
 A comunicação com o cliente depende da regra de que **explicar a rejeição ajuda o comprador**, criando um ponto em que **a explicação é entregue igualmente a quem quer aprender a contornar a regra**. É a assimetria central da seção 3.1: f2 e f4 têm o mesmo conteúdo, e A3 não escolhe a quem responde.
 
 - **Pressuposto:** P3, e a impossibilidade de A3 distinguir A1 de A2 no momento da resposta.
 - **Onde aparece:** rodada 1, onde o `429` explícito entregou o limiar em minutos.
-- **Ativos expostos:** nenhum diretamente; PE7 é o canal que torna PE4 e PE6 calibráveis. Expõe os limiares de detecção, que protegem todos os ativos.
+- **Ativos expostos:** justiça da alocação e confiança no processo, de forma indireta. PE7 não altera o estoque; ele entrega a A2 os limiares de detecção, e é isso que torna PE4 e PE6 calibráveis.
 - **O que A2 aprende por aqui:** a regra por trás de cada rejeição.
 
 ### PE8. Fila sorteada em que cada conta é um bilhete
@@ -170,8 +170,8 @@ A fila depende da regra de que **cada conta concorre com um bilhete e cada pesso
 | **PE3** | Expiração | F3 → F1 | Devolução imediata, periódica e pública | P2, P4 | 3 | Disponibilidade, justiça, confiança | Projeto original |
 | **PE4** | Identidade, Reserva | F5, F2 | Limite por conta, conta sem verificação | P1 | 2, 4 | Justiça | Projeto original |
 | **PE5** | Reserva | F2 | Verificar e gravar sem atomicidade | Fraqueza de implementação; P5 | n/a | Integridade, justiça | Projeto original |
-| **PE6** | Borda da API | F1, F2 | 30 req/min por IP | P3, P5 | 1, 2 | Justiça, confiança | Criado na rodada 1 |
-| **PE7** | Mensagens de resposta | F7 | Rejeição específica e determinística | P3 | 1 | Limiares de detecção | Criado na rodada 1 |
+| **PE6** | Borda da API | F1, F2 | 30 req/min por IP e por sessão | P3, P5 | 1, 2 | Justiça, confiança | Criado na rodada 1 |
+| **PE7** | Borda da API (respostas) | F7 | Rejeição específica e determinística | P3 | 1 | Justiça, confiança (indireto, via calibragem) | Criado na rodada 1 |
 | **PE8** | Fila de espera | F6 | Uma posição sorteada por conta | P1, P5 | 2, 3 | Justiça | Criado na rodada 2 |
 
 ### Cobertura das interfaces
@@ -225,5 +225,5 @@ PE6, PE7 e PE8 não existiam no estado inicial. Eles foram criados pelas respost
 
 - A superfície é a da interação delimitada na seção 3.1. Catálogo, emissão fiscal, check-in, reembolso e antifraude bancário não foram analisados.
 - Ataques à infraestrutura em si (negação de serviço volumétrica, invasão de servidores, roubo de credenciais de outros usuários) ficam fora: não dependem das regras de alocação e não são o conflito modelado nas seções 3.2 e 3.3.
-- A regra exata do estado inicial (limite contado por pedido, cadastro só com e-mail e CPF, verificação do limite em duas etapas) é uma hipótese de projeto coerente com as rodadas, não a descrição de uma plataforma real.
+- Alguns detalhes das regras são hipóteses de projeto coerentes com as rodadas, não a descrição de uma plataforma real: o limite contado por pedido, o cadastro só com e-mail e CPF, a verificação do limite em duas etapas e os códigos de rejeição específicos além do `429` da rodada 1.
 - Os pontos não têm prioridade entre si nesta seção. A prioridade sai da pontuação de [`riscos.md`](riscos.md).

@@ -1,21 +1,21 @@
 %% Fig. 4 - Superficie de ataque (secao 3.4, docs/superficie-ataque.md). Fonte editavel; exportado para superficie-de-ataque.svg e .png
 %% Cores seguem a legenda da secao 3.1: verde A1, vermelho A2, azul componentes da plataforma (A3), amarelo ativo.
 %% Laranja: ponto de exploracao (PE1 a PE8). Contorno grosso: ponto criado por resposta de A3 nas rodadas 1 e 2.
-%% Linha continua: requisicao ou transicao de estado. Tracejada: resposta que volta como sinal. Pontilhada laranja: onde o ponto se localiza.
+%% Linha continua preta: requisicao ou transicao de estado. Pontilhada preta: resposta de F7 que volta como sinal. Pontilhada laranja: onde o ponto se localiza.
 flowchart TB
     A1["<b>A1</b><br/>comprador legítimo<br/>manual, poucas tentativas"]
     A2["<b>A2</b><br/>comprador adversarial<br/>automação, proxies, muitas contas"]
 
     subgraph BORDA["Borda da API: fronteira de confiança"]
         direction LR
-        rl["<b>Controle de ritmo</b><br/>30 req/min por IP (rodada 1)"]
+        rl["<b>Controle de ritmo</b><br/>30 req/min por IP e sessão (rodada 1)"]
         F1["<b>F1</b> Consulta de disponibilidade"]
         F2["<b>F2</b> Criação de reserva<br/>+ CAPTCHA (rodada 2)"]
         F4["<b>F4</b> Confirmação de pagamento"]
         F5["<b>F5</b> Cadastro e autenticação"]
         F6["<b>F6</b> Fila de espera"]
         F7["<b>F7</b> Mensagens e códigos de resposta"]
-        PE6>"<b>PE6</b> limiar fixo por IP<br/>criado na rodada 1"]
+        PE6>"<b>PE6</b> limiar fixo por IP e sessão<br/>criado na rodada 1"]
         PE7>"<b>PE7</b> mensagem como oráculo<br/>criado na rodada 1"]
     end
 
