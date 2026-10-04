@@ -1,0 +1,62 @@
+%% Fig. 3 - Ciclo adaptativo (secao 3.3). Fonte editavel; exportado para ciclo-adaptativo.svg
+%% Cores seguem a legenda da secao 3.1: vermelho A2, azul A3, branco observavel, verde A1.
+%% Linha continua: acao dentro da rodada. Tracejada: observacao/adaptacao para a rodada seguinte.
+flowchart TB
+    E0["<b>Estado inicial</b><br/>limite de 4 por identidade, TTL de 10 min<br/>lote esgota em segundos"]
+
+    subgraph R1["Rodada 1"]
+        direction LR
+        a1["<b>A2 age</b><br/>automação e monitoramento<br/>em alta frequência"]
+        r1["<b>A3 responde</b><br/>rate limit por IP<br/>com 429 explícito"]
+        o1["<b>Observável</b><br/>A2: limiar exato e que ele depende do IP<br/>A3: volume concentrado em poucas origens"]
+        c1["<b>A1</b><br/>humano ansioso bloqueado"]
+        a1 --> r1 --> o1
+        r1 --> c1
+    end
+
+    subgraph R2["Rodada 2"]
+        direction LR
+        a2["<b>A2 age</b><br/>rotação de IP, contas em lote,<br/>cadência humana"]
+        r2["<b>A3 responde</b><br/>fila sorteada + CAPTCHA"]
+        o2["<b>Observável</b><br/>A2: fila premia nº de contas; CAPTCHA universal<br/>A3: fingerprints repetidas, contas da véspera"]
+        c2["<b>A1</b><br/>fila ajuda; CAPTCHA gera desistência"]
+        a2 --> r2 --> o2
+        r2 --> c2
+    end
+
+    subgraph R3["Rodada 3"]
+        direction LR
+        a3["<b>A2 age</b><br/>CAPTCHA terceirizado,<br/>reservas em massa sem pagar"]
+        r3["<b>A3 responde</b><br/>TTL 5 min, pré-autorização,<br/>mensagem genérica, cancelamento a posteriori"]
+        o3["<b>Observável</b><br/>A2: sinal genérico e atrasado<br/>A3: conversão reserva→pagamento baixa"]
+        c3["<b>A1</b><br/>prazo curto; risco de cancelamento indevido"]
+        a3 --> r3 --> o3
+        r3 --> c3
+    end
+
+    subgraph R4["Rodada 4"]
+        direction LR
+        a4["<b>A2 age</b><br/>contas aquecidas,<br/>cartões distintos"]
+        r4["<b>A3 responde</b><br/>verificação de identidade seletiva"]
+        o4["<b>Observável</b><br/>A2: quais contas são verificadas<br/>A3: padrão de compra de contas antigas"]
+        c4["<b>A1</b><br/>cadastro mais longo, exposição de dados"]
+        a4 --> r4 --> o4
+        r4 --> c4
+    end
+
+    N["<b>Próxima adaptação</b><br/>A2: identidades de pessoas reais (laranjas)<br/>corrida armamentista em identidade"]
+
+    E0 --> a1
+    o1 -. "adapta: distribuir abaixo do limiar" .-> a2
+    o2 -. "adapta: comprar CAPTCHA, ocupar fila, reter estoque" .-> a3
+    o3 -. "adapta: identidades que não se correlacionam" .-> a4
+    o4 -. "adapta" .-> N
+
+    classDef adv fill:#fde2e2,stroke:#c62828,color:#000
+    classDef def fill:#e3edfb,stroke:#1f5fbf,color:#000
+    classDef obs fill:#ffffff,stroke:#555,color:#000
+    classDef leg fill:#e3f4e1,stroke:#2e7d32,color:#000
+    class a1,a2,a3,a4,N adv
+    class r1,r2,r3,r4 def
+    class o1,o2,o3,o4,E0 obs
+    class c1,c2,c3,c4 leg

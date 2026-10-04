@@ -52,7 +52,17 @@
 
 ## Seção 3.3 — Modelo estratégico dinâmico
 
-> *Pendente.*
+- Reutiliza a referência **3** (OWASP OAT): **OAT-021 Denial of Inventory** sustenta a
+  imobilização de estoque da rodada 3.
+
+### Ferramentas utilizadas nesta seção
+
+- **Mermaid (mermaid-cli)** — diagrama do ciclo adaptativo. Fonte editável em
+  `diagramas/ciclo-adaptativo.mmd`, exportado para `diagramas/ciclo-adaptativo.svg` e `.png`.
+
+### Ferramentas de IA generativa utilizadas nesta seção
+
+- **Claude (Anthropic)** — apoio à redação e estruturação da seção 3.3.
 
 ## Seção 3.4 — Superfície de ataque
 
