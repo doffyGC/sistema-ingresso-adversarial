@@ -66,7 +66,19 @@
 
 ## Seção 3.4 — Superfície de ataque
 
-> *Pendente.*
+- Reutiliza a referência **3** (OWASP OAT): **OAT-021 Denial of Inventory** sustenta PE2 e PE3, **OAT-019 Account Creation** sustenta PE4 e PE8, e **OAT-006 Expediting** sustenta PE1.
+
+5. **OWASP FOUNDATION.** *Attack Surface Analysis Cheat Sheet*. OWASP Cheat Sheet Series. Disponível em: `https://cheatsheetseries.owasp.org/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.html`. Base do método usado: enumerar pontos de entrada e saída, separar o que é controlado pelo cliente e rever a superfície a cada mudança no sistema.
+
+6. **MITRE.** *CWE-367: Time-of-check Time-of-use (TOCTOU) Race Condition*. Common Weakness Enumeration. Disponível em: `https://cwe.mitre.org/data/definitions/367.html`. Caracteriza a fraqueza de implementação de PE5 (verificar o limite e gravar a reserva sem atomicidade).
+
+### Ferramentas utilizadas nesta seção
+
+- **Mermaid (mermaid-cli)**: diagrama de superfície de ataque. Fonte editável em `diagramas/superficie-de-ataque.mmd`, exportado para `diagramas/superficie-de-ataque.svg` e `.png`.
+
+### Ferramentas de IA generativa utilizadas nesta seção
+
+- **Claude (Anthropic)**: apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque.
 
 ## Seção 3.4 — Ameaças e riscos
 
@@ -74,4 +86,20 @@
 
 ## Resiliência e arquitetura do T2
 
-> *Pendente.*
+> Inclui também a escala e a pontuação de risco de `docs/riscos.md`.
+
+- Reutiliza a referência **3** (OWASP OAT): **OAT-021 Denial of Inventory** caracteriza a
+  ameaça prioritária e sustenta a nota de probabilidade 3.
+- Reutiliza a referência **4** (Anderson): a assimetria de custos entre atacante e defensor
+  sustenta o critério de que um controle se justifica quando custa mais para A2 do que
+  para A1.
+
+### Ferramentas utilizadas nesta seção
+
+- **Mermaid (mermaid-cli)** — diagrama de arquitetura do Trabalho 2. Fonte editável em
+  `diagramas/arquitetura-t2.mmd`, exportado para `diagramas/arquitetura-t2.svg` e `.png`.
+
+### Ferramentas de IA generativa utilizadas nesta seção
+
+- **Claude (Anthropic)** — apoio à redação e estruturação da escala de risco, da resposta à
+  ameaça prioritária e do diagrama de arquitetura.
