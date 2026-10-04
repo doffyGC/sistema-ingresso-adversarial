@@ -12,9 +12,14 @@ pagar**, que explora o pressuposto **P2** (OWASP OAT-021, *Denial of Inventory*)
 > de circulação e sua concentração em quem monitora em alta frequência** sobre a
 > **disponibilidade do estoque e a justiça da alocação**.
 
+Na superfície de ataque ([`superficie-ataque.md`](superficie-ataque.md)), é a cadeia
+**PE2 → PE3 → PE1**: a reserva retém o estoque sem custo (PE2), a expiração o devolve em
+instante previsível ao estoque público (PE3) e a leitura gratuita da disponibilidade
+permite pegá-lo de novo (PE1). Em [`riscos.md`](riscos.md) é o cenário **T1**, risco 9.
+
 > **Pendente de alinhamento:** o ID do cenário e sua formulação final vêm de
-> [`ameacas.md`](ameacas.md), e a prioridade, da tabela de [`riscos.md`](riscos.md). O
-> texto acima é provisório e deve ser substituído pela versão daquele arquivo.
+> [`ameacas.md`](ameacas.md). O texto acima é provisório e deve ser substituído pela
+> versão daquele arquivo.
 
 **Por que é a prioritária.** É a única ameaça que atinge os dois ativos ao mesmo tempo:
 tira ingressos de circulação (disponibilidade) e os devolve a quem tem automação (justiça).
@@ -35,14 +40,19 @@ liberado volta para quem está monitorando.
 A resposta combina controles que agem sobre pontos diferentes da imobilização. Nenhum
 deles sozinho resolve; o conjunto muda o incentivo.
 
-| # | Controle | Interface | O que ataca |
-|-:|---|---|---|
-| **R1** | **Devolução pela fila, não pelo estoque público.** Um ingresso cuja reserva expira não volta à disponibilidade exibida (F1): é oferecido ao próximo da fila de espera sorteada (F6) | F3, F6 | A recaptura. Monitorar F1 em alta frequência deixa de render ingressos liberados |
-| **R2** | **Limite de reservas ativas** por identidade e por cluster de contas correlacionadas (por exemplo, uma reserva ativa por conta) | F2 | A escala. Imobilizar *n* ingressos exige *n* identidades ativas ao mesmo tempo |
-| **R3** | **Reservar custa algo:** pré-autorização do cartão no ato da reserva, ou pagamento imediato via Pix como alternativa para quem não tem cartão | F2, F4 | O custo zero de reservar sem pagar (P5) |
-| **R4** | **TTL curto com prorrogação única** quando o pagamento já foi iniciado (por exemplo, 5 min + 5 min se a autenticação bancária está em curso) | F3, F4 | O tempo de imobilização, sem punir quem paga devagar |
-| **R5** | **Perda de prioridade, não bloqueio:** uma conta com reservas expiradas repetidas vai para o fim da fila *naquele evento* | F6 | A repetição do ciclo reserva → expira → reserva, com uma penalidade reversível |
-| **R6** | **Controle do sinal:** mensagem genérica em toda rejeição (F7) e cancelamento *a posteriori* só para clusters confirmados | F7 | O aprendizado de A2 sobre os limiares (lição da rodada 1) |
+| # | Controle | Interface | Ponto | O que ataca |
+|-:|---|---|---|---|
+| **R1** | **Devolução pela fila, não pelo estoque público.** Um ingresso cuja reserva expira não volta à disponibilidade exibida (F1): é oferecido ao próximo da fila de espera sorteada (F6) | F3, F6 | PE3; PE1 deixa de ver a devolução | A recaptura. Monitorar F1 em alta frequência deixa de render ingressos liberados |
+| **R2** | **Limite de reservas ativas** por identidade e por cluster de contas correlacionadas (por exemplo, uma reserva ativa por conta) | F2 | PE2; PE4 pelo cluster | A escala. Imobilizar *n* ingressos exige *n* identidades ativas ao mesmo tempo |
+| **R3** | **Reservar custa algo:** pré-autorização do cartão no ato da reserva, ou pagamento imediato via Pix como alternativa para quem não tem cartão | F2, F4 | PE2 | O custo zero de reservar sem pagar (P5) |
+| **R4** | **TTL curto com prorrogação única** quando o pagamento já foi iniciado (por exemplo, 5 min + 5 min se a autenticação bancária está em curso) | F3, F4 | PE2 | O tempo de imobilização, sem punir quem paga devagar |
+| **R5** | **Perda de prioridade, não bloqueio:** uma conta com reservas expiradas repetidas vai para o fim da fila *naquele evento* | F6 | PE2, pela repetição | A repetição do ciclo reserva → expira → reserva, com uma penalidade reversível |
+| **R6** | **Controle do sinal:** mensagem genérica em toda rejeição (F7) e cancelamento *a posteriori* só para clusters confirmados | F7 | PE7; PE6 deixa de ser calibrável | O aprendizado de A2 sobre os limiares (lição da rodada 1) |
+
+Os três pontos da cadeia da imobilização são atacados: PE2 por R2–R5, PE3 por R1 e PE1 de
+forma indireta, porque deixa de enxergar a devolução. PE5 não é tratado por um controle
+desta tabela, e sim pela arquitetura: a transição `DISPONIVEL → RESERVADO` atômica do
+componente Reserva (seção *Arquitetura para o Trabalho 2*).
 
 ### Observabilidade: o que A3 passa a monitorar
 
@@ -129,6 +139,20 @@ Sem a recaptura, A2 mantém o objetivo e muda a ação, como no modelo dinâmico
 As cinco adaptações convergem para o mesmo lugar: **o custo de identidade**. É ali que a
 corrida continua, e é ali que a próxima resposta de A3 (verificação seletiva, rodada 4)
 precisa atuar.
+
+**A resposta também cria superfície.** Como em
+[`superficie-ataque.md`](superficie-ataque.md) (seção 6), cada controle é uma regra nova
+que A2 pode observar:
+
+| Controle | Regra nova que A2 passa a explorar | Ponto que se fortalece |
+|---|---|---|
+| **R1** | O ingresso expirado vai para a fila, e não para o estoque público | **PE8**: cada posição na fila passa a valer também os ingressos devolvidos (adaptação 4) |
+| **R2** | O critério que agrupa contas em um cluster | **PE4**: A2 estima o critério e cria contas que não se correlacionam (adaptação 1) |
+| **R4** | O evento do pagamento que dispara a prorrogação | **PE2**: A2 inicia pagamentos que não conclui para reter por mais tempo |
+| **R5** | O número de expirações que leva ao fim da fila | **PE8**: distribuir expirações entre contas mantém todas abaixo do limiar |
+
+Por isso o risco da imobilização não cai a zero ([`riscos.md`](riscos.md), seção 4): o que
+sobra passa por PE4 e PE8, que é o cenário T2 (escala por identidades).
 
 ---
 
@@ -225,7 +249,7 @@ sem escolher linguagem nem *framework*, que são decisão do Trabalho 2.
 |---|---|---|---|
 | **Borda da API** | F1, F2, F4, F5, F7 | R6 | Autentica a sessão, aplica *rate limit* e devolve sempre a mesma mensagem genérica em rejeições. Único ponto que fala com o cliente |
 | **Disponibilidade** | F1 | R1 | Exibe só ingressos em estado `DISPONIVEL`. Um ingresso ofertado à fila não aparece |
-| **Reserva** | F2 | R2, R3 | Verifica o limite de reservas ativas por conta e por cluster, pede a pré-autorização e faz a transição `DISPONIVEL → RESERVADO` de forma atômica |
+| **Reserva** | F2 | R2, R3 | Verifica o limite de reservas ativas por conta e por cluster, pede a pré-autorização e faz a transição `DISPONIVEL → RESERVADO` de forma atômica, o que fecha PE5 |
 | **Expiração** | F3 | R4 | Expira reservas vencidas; concede uma única prorrogação quando o Pagamento informa que a autenticação está em curso |
 | **Redistribuição** | F3 → F6 | R1 | Oferece o ingresso expirado ao próximo da fila; se ele não aceitar no prazo, ao seguinte; se a fila acabar, devolve ao estoque público |
 | **Fila de espera** | F6 | R5 | Ordem sorteada antes da abertura; rebaixa para o fim as contas marcadas pelo Detector, só no evento corrente |
