@@ -359,6 +359,16 @@ sistema-ingresso-adversarial/
     └── referencias.md            colaborativo
 ```
 
+## Contribuições individuais
+
+Cada integrante registra a própria linha; os commits correspondentes estão no histórico do
+repositório.
+
+| Integrante | Seções | Artefatos |
+|---|---|---|
+| Lorenzo Ponsi Ficher | 3.4 (riscos) e resiliência | `docs/riscos.md` (escala de risco, pontuação dos cenários T1–T3, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes neste README |
+| *a preencher* | | |
+
 ## Referências
 
 Ver [`fontes/referencias.md`](fontes/referencias.md).
