@@ -1,0 +1,58 @@
+%% Arquitetura proposta para o Trabalho 2 (docs/resiliencia.md). Fonte editavel; exportado para arquitetura-t2.svg
+%% Cores seguem a legenda da secao 3.1: verde A1, vermelho A2, azul A3 (componentes da plataforma), amarelo ativo.
+%% Linha continua: requisicao ou transicao de estado. Tracejada: telemetria e deteccao, que so tem efeito depois.
+flowchart LR
+    A1["<b>A1</b><br/>comprador legítimo"]
+    A2["<b>A2</b><br/>comprador adversarial"]
+
+    subgraph PLAT["Plataforma (A3)"]
+        direction LR
+        borda["<b>Borda da API</b><br/>autenticação, rate limit,<br/>mensagem genérica (R6)"]
+        disp["<b>Disponibilidade</b><br/>F1 — só estado DISPONIVEL (R1)"]
+        res["<b>Reserva</b><br/>F2 — reservas ativas (R2),<br/>pré-autorização (R3)"]
+        pag["<b>Pagamento</b><br/>F4 — simulador do provedor"]
+        exp["<b>Expiração</b><br/>F3 — TTL + prorrogação única (R4)"]
+        redis["<b>Redistribuição</b><br/>expirado → próximo da fila (R1)"]
+        fila["<b>Fila de espera</b><br/>F6 — ordem sorteada,<br/>rebaixamento (R5)"]
+        ident["<b>Identidade</b><br/>F5 — cadastro e correlação"]
+        estoque[("<b>Estoque</b><br/>estado de cada ingresso")]
+        tele["<b>Telemetria</b><br/>transições e requisições"]
+        det["<b>Detector</b><br/>conversão por cluster,<br/>periodicidade"]
+        mod["<b>Moderação e contestação</b><br/>cancelamento a posteriori (R6)"]
+        painel["<b>Painel</b><br/>imobilização e custo para A1"]
+    end
+
+    A1 --> borda
+    A2 --> borda
+    borda --> disp
+    borda --> res
+    borda --> pag
+    borda --> ident
+    borda --> fila
+    disp --> estoque
+    res --> estoque
+    res --> pag
+    pag --> estoque
+    pag --> exp
+    exp --> estoque
+    exp --> redis
+    redis --> fila
+    redis --> estoque
+
+    estoque -.-> tele
+    borda -.-> tele
+    ident -.-> det
+    tele -.-> det
+    det -. "marca contas" .-> fila
+    det -. "cluster confirmado" .-> mod
+    mod -.-> estoque
+    tele -.-> painel
+
+    classDef leg fill:#e3f4e1,stroke:#2e7d32,color:#000
+    classDef adv fill:#fde2e2,stroke:#c62828,color:#000
+    classDef def fill:#e3edfb,stroke:#1f5fbf,color:#000
+    classDef ativo fill:#fff4c2,stroke:#b8860b,color:#000
+    class A1 leg
+    class A2 adv
+    class borda,disp,res,pag,exp,redis,fila,ident,tele,det,mod,painel def
+    class estoque ativo
