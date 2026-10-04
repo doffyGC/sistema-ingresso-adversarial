@@ -230,9 +230,36 @@ tracejadas são a adaptação para a seguinte.
 
 ## 3.4 Ameaças e riscos
 
-> *Pendente.*
-> Insumo disponível: sete interfaces de fronteira e cinco pressupostos já mapeados entre
-> si em [`docs/contexto.md`](docs/contexto.md), seções 9 e 12; ativos na seção 4.
+### Superfície de ataque
+
+> **Desenvolvimento completo em [`docs/superficie-ataque.md`](docs/superficie-ataque.md):** a cadeia componente → interface → regra → ponto de cada um dos oito pontos, o que A2 aprende em cada um, a cobertura de interfaces e pressupostos e as cadeias de exploração. Abaixo, o resumo.
+
+A superfície analisada é a do sistema antes do redesenho: as regras do estado inicial do 3.3 (limite de 4 por identidade, TTL de 10 minutos) mais os controles das rodadas 1 e 2 (limite por IP com `429`, fila sorteada, CAPTCHA). A fronteira de confiança é a **Borda da API**: tudo o que vem do cliente (IP, cadência, cadastro, momento da requisição) é controlado pelo comprador e pode ser repetido a custo quase zero (P5).
+
+Cada ponto liga uma funcionalidade à regra de que ela depende: "a funcionalidade X depende da regra Y, criando o ponto de exploração Z".
+
+| Ponto | Componente | Interface | Regra explorada | Pressuposto ou fraqueza | Rodada | Origem |
+|---|---|---|---|---|-:|---|
+| **PE1** Leitura gratuita e visões divergentes | Disponibilidade | F1 | Consulta sem custo nem limite, servida de cache | P4, P5 | 1 | Projeto original |
+| **PE2** Reserva retém estoque sem custo | Reserva | F2 (e F4) | Reservar é grátis e não há limite de reservas ativas | P2, P5 | 3 | Projeto original |
+| **PE3** Devolução previsível e pública | Expiração | F3 → F1 | O ingresso volta à disponibilidade pública quando o TTL fixo vence | P2, P4 | 3 | Projeto original |
+| **PE4** Limite por conta, conta barata | Identidade, Reserva | F5, F2 | Limite de 4 por conta; conta sem verificação de pessoa | P1 | 2, 4 | Projeto original |
+| **PE5** Limite sob requisições simultâneas | Reserva | F2 | O limite é lido e depois gravado, sem atomicidade | Fraqueza de implementação; P5 | n/a | Projeto original |
+| **PE6** Limiar fixo por IP | Borda da API | F1, F2 | 30 req/min contadas por IP | P3, P5 | 1, 2 | Criado na rodada 1 |
+| **PE7** Mensagem como oráculo | Mensagens de resposta | F7 | Rejeição com código específico e determinística | P3 | 1 | Criado na rodada 1 |
+| **PE8** Cada conta é um bilhete | Fila de espera | F6 | Uma posição sorteada por conta | P1, P5 | 2, 3 | Criado na rodada 2 |
+
+Todas as interfaces F1 a F7 e todos os pressupostos P1 a P5 têm pelo menos um ponto. Os pontos rendem mais quando encadeados: **PE2 → PE3 → PE1** é a imobilização com recaptura (base da ameaça prioritária), **PE4 → PE8** com PE5 é a escala por identidades, e **PE7 → PE6 → PE4** é a calibragem pelos limiares.
+
+**A superfície cresce com a defesa.** PE6, PE7 e PE8 não existiam no estado inicial: foram criados pelas respostas de A3 nas rodadas 1 e 2. Toda defesa é também uma regra, e toda regra que A2 consegue observar passa a fazer parte da superfície.
+
+![Diagrama de superfície de ataque](diagramas/superficie-de-ataque.svg)
+
+Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
+
+### Cenários de ameaça e riscos
+
+> *Pendente.* Os cenários usam os pontos PE1 a PE8 acima; escala e pontuação em [`docs/riscos.md`](docs/riscos.md).
 
 ## Resiliência, resposta e arquitetura do Trabalho 2
 
@@ -307,6 +334,7 @@ sistema-ingresso-adversarial/
 │   ├── contexto.md               3.1
 │   ├── modelo-estatico.md        3.2
 │   ├── modelo-dinamico.md        3.3
+│   ├── superficie-ataque.md      3.4        superfície de ataque
 │   ├── ameacas.md                3.4        (pendente)
 │   ├── riscos.md                 3.4        (parcial)
 │   └── resiliencia.md            resiliência e arquitetura do T2
@@ -315,7 +343,7 @@ sistema-ingresso-adversarial/
 │   ├── contexto-fluxo.svg        Fig. 2 - fluxo interno
 │   ├── contexto-legenda.svg      legenda das duas
 │   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte (+ .svg, .png)
-│   ├── superficie-ataque.*                  (pendente)
+│   ├── superficie-de-ataque.mmd  Fig. 4 - fonte (+ .svg, .png)
 │   └── arquitetura-t2.mmd        fonte (+ .svg, .png)
 └── fontes/
     └── referencias.md            colaborativo
@@ -336,6 +364,7 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 | 3.1 | Claude (Anthropic) | Apoio à redação e estruturação |
 | 3.2 | *a preencher pelo autor da seção* | |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
+| 3.4 (superfície de ataque) | Claude (Anthropic) | Apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque |
 | 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
 
 **Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à
