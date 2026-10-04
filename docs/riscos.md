@@ -52,15 +52,9 @@ ordem.
 
 Cada cenário parte de uma das cadeias de pontos de exploração de
 [`superficie-ataque.md`](superficie-ataque.md), seção 5: a cadeia diz **por onde** A2 age, e
-o cenário acrescenta quem age, com que intenção e com que impacto.
-
-> **Pendente:** os IDs `T1`–`T3` e a redação dos cenários são provisórios e devem ser
-> trocados pelos de [`ameacas.md`](ameacas.md). As notas não dependem da redação, e sim da
-> cadeia de pontos e dos ativos atingidos.
-
-> **Atenção aos IDs:** o modelo de tabela do enunciado usa `A1`, `A2`, `A3` para os
-> cenários, mas esses IDs já são os **atores** da seção 3.1. Sugestão: usar `T1`, `T2`,
-> `T3` para os cenários de ameaça.
+o cenário acrescenta quem age, com que intenção e com que impacto. A redação completa de
+cada cenário, no formato do enunciado, está em [`ameacas.md`](ameacas.md); os IDs são
+`T1`–`T3` porque `A1`–`A3` já são os atores da seção 3.1.
 
 | ID | Cenário de ameaça | Ponto de exploração | Pressuposto ou fraqueza | Ativo afetado | Probabilidade | Impacto | Risco |
 |-|-|-|-|-|-:|-:|-:|

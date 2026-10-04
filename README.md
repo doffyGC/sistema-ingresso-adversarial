@@ -259,9 +259,30 @@ Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da lege
 
 ### Cenários de ameaça e riscos
 
-> *Cenários pendentes* (redação no formato do enunciado em `docs/ameacas.md`). A pontuação
-> abaixo já usa as cadeias de pontos acima; escala, critérios de cada nível e justificativa
-> das notas em [`docs/riscos.md`](docs/riscos.md). IDs e redação são provisórios.
+> **Desenvolvimento completo em [`docs/ameacas.md`](docs/ameacas.md)** (como cada cenário
+> acontece, por que é adversarial e não erro, rastreabilidade) **e
+> [`docs/riscos.md`](docs/riscos.md)** (escala, critérios de cada nível e justificativa das
+> notas). Os IDs são `T1`–`T3` porque `A1`–`A3` já são os atores da seção 3.1.
+
+Cada cenário parte de uma cadeia de pontos de exploração acima:
+
+- **T1 — Imobilização e recaptura.** Um **comprador adversarial (A2)** pode **abrir reservas
+  em massa sem intenção de pagar, deixá-las expirar e reservar de novo o ingresso quando ele
+  volta** por meio de **PE2 → PE3 → PE1**, aproveitando **P2** (reserva não paga volta a
+  circular para outro comprador), causando **a retirada do estoque de circulação e sua
+  concentração em quem monitora em alta frequência** sobre a **disponibilidade do estoque
+  e a justiça da alocação**.
+- **T2 — Escala por identidades.** Um **comprador adversarial (A2)** pode **multiplicar
+  contas para multiplicar o limite de 4 ingressos e as posições na fila, com requisições
+  simultâneas para passar do limite** por meio de **PE4 → PE8, com PE5**, aproveitando
+  **P1** (uma identidade é uma pessoa) **e a verificação do limite sem atomicidade**,
+  causando **o desvio do lote para quem controla mais contas** sobre a **justiça da
+  alocação e a integridade das reservas**.
+- **T3 — Calibragem pelos limiares.** Um **comprador adversarial (A2)** pode **usar as
+  mensagens de rejeição para descobrir os limiares e operar logo abaixo deles, rotacionando
+  IPs e contas** por meio de **PE7 → PE6 → PE4**, aproveitando **P3** (a cadência revela se
+  o agente é humano), causando **a perda de efeito da detecção e o bloqueio de compradores
+  legítimos** sobre a **justiça da alocação e a confiança no processo**.
 
 | ID | Cenário | Cadeia | Ativo afetado | P | I | Risco |
 |---|---|---|---|-:|-:|-:|
@@ -345,7 +366,7 @@ sistema-ingresso-adversarial/
 │   ├── modelo-estatico.md        3.2
 │   ├── modelo-dinamico.md        3.3
 │   ├── superficie-ataque.md      3.4        superfície de ataque
-│   ├── ameacas.md                3.4        (pendente)
+│   ├── ameacas.md                3.4        cenários de ameaça
 │   ├── riscos.md                 3.4        escala e pontuação
 │   └── resiliencia.md            resiliência e arquitetura do T2
 ├── diagramas/
@@ -366,7 +387,7 @@ repositório.
 
 | Integrante | Seções | Artefatos |
 |---|---|---|
-| Lorenzo Ponsi Ficher | 3.4 (riscos) e resiliência | `docs/riscos.md` (escala de risco, pontuação dos cenários T1–T3, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes neste README |
+| Lorenzo Ponsi Ficher | 3.4 (cenários e riscos) e resiliência | `docs/ameacas.md` (cenários T1–T3 e rastreabilidade), `docs/riscos.md` (escala de risco, pontuação dos cenários T1–T3, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes neste README |
 | *a preencher* | | |
 
 ## Referências
@@ -385,6 +406,7 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 | 3.2 | *a preencher pelo autor da seção* | |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
 | 3.4 (superfície de ataque) | Claude (Anthropic) | Apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque |
+| 3.4 (cenários de ameaça) | Claude (Anthropic) | Apoio à redação dos cenários T1–T3 no formato do enunciado e da tabela de rastreabilidade |
 | 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da pontuação dos cenários a partir dos pontos de exploração, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
 
 **Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à

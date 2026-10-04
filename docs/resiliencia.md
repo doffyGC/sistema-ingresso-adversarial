@@ -15,11 +15,7 @@ pagar**, que explora o pressuposto **P2** (OWASP OAT-021, *Denial of Inventory*)
 Na superfície de ataque ([`superficie-ataque.md`](superficie-ataque.md)), é a cadeia
 **PE2 → PE3 → PE1**: a reserva retém o estoque sem custo (PE2), a expiração o devolve em
 instante previsível ao estoque público (PE3) e a leitura gratuita da disponibilidade
-permite pegá-lo de novo (PE1). Em [`riscos.md`](riscos.md) é o cenário **T1**, risco 9.
-
-> **Pendente de alinhamento:** o ID do cenário e sua formulação final vêm de
-> [`ameacas.md`](ameacas.md). O texto acima é provisório e deve ser substituído pela
-> versão daquele arquivo.
+permite pegá-lo de novo (PE1). Em [`riscos.md`](riscos.md) é o cenário **T1**, risco 9. A redação acima é a de [`ameacas.md`](ameacas.md), resumida.
 
 **Por que é a prioritária.** É a única ameaça que atinge os dois ativos ao mesmo tempo:
 tira ingressos de circulação (disponibilidade) e os devolve a quem tem automação (justiça).
