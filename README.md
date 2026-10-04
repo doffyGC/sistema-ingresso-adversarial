@@ -259,7 +259,17 @@ Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da lege
 
 ### Cenários de ameaça e riscos
 
-> *Pendente.* Os cenários usam os pontos PE1 a PE8 acima; escala e pontuação em [`docs/riscos.md`](docs/riscos.md).
+> *Cenários pendentes* (redação no formato do enunciado em `docs/ameacas.md`). A pontuação
+> abaixo já usa as cadeias de pontos acima; escala, critérios de cada nível e justificativa
+> das notas em [`docs/riscos.md`](docs/riscos.md). IDs e redação são provisórios.
+
+| ID | Cenário | Cadeia | Ativo afetado | P | I | Risco |
+|---|---|---|---|-:|-:|-:|
+| **T1** | Imobilização e recaptura | PE2 → PE3 → PE1 | Disponibilidade, justiça | 3 | 3 | **9** |
+| **T2** | Escala por identidades | PE4 → PE8, com PE5 | Justiça, integridade das reservas | 2 | 3 | **6** |
+| **T3** | Calibragem pelos limiares | PE7 → PE6 → PE4 | Justiça, confiança | 3 | 2 | **6** |
+
+Risco = probabilidade × impacto, cada um de 1 a 3; 6–9 é alto, 3–4 médio, 1–2 baixo.
 
 ## Resiliência, resposta e arquitetura do Trabalho 2
 
@@ -268,11 +278,11 @@ Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da lege
 > vazamento de informação controle a controle, as mitigações para A1 e os componentes do
 > Trabalho 2. Escala e pontuação em [`docs/riscos.md`](docs/riscos.md). Abaixo, o resumo.
 
-**Ameaça prioritária:** imobilização de estoque — A2 abre reservas em massa sem intenção de
-pagar e recaptura o ingresso quando ele expira, explorando **P2** pelas interfaces F2 e F3
-(OWASP OAT-021). Risco **9 (3 × 3)**: reservar não custa nada e a ameaça atinge ao mesmo
-tempo a disponibilidade e a justiça da alocação. *A prioridade é confirmada quando os demais
-cenários da seção 3.4 forem pontuados.*
+**Ameaça prioritária:** imobilização de estoque (T1) — A2 abre reservas em massa sem
+intenção de pagar e recaptura o ingresso quando ele expira, pela cadeia **PE2 → PE3 → PE1**,
+explorando **P2** (OWASP OAT-021). Risco **9 (3 × 3)**: reservar não custa nada e a ameaça
+atinge ao mesmo tempo a disponibilidade e a justiça da alocação. É a prioritária porque os
+demais cenários pontuados, T2 e T3, ficam em 6.
 
 **Resposta.** A rodada 3 do 3.3 encarece a imobilização; o redesenho ataca a falha do
 pressuposto — o estoque liberado voltava para quem monitora em alta frequência.
@@ -336,7 +346,7 @@ sistema-ingresso-adversarial/
 │   ├── modelo-dinamico.md        3.3
 │   ├── superficie-ataque.md      3.4        superfície de ataque
 │   ├── ameacas.md                3.4        (pendente)
-│   ├── riscos.md                 3.4        (parcial)
+│   ├── riscos.md                 3.4        escala e pontuação
 │   └── resiliencia.md            resiliência e arquitetura do T2
 ├── diagramas/
 │   ├── contexto.svg              Fig. 1 - DFD nivel 0
@@ -365,7 +375,7 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 | 3.2 | *a preencher pelo autor da seção* | |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
 | 3.4 (superfície de ataque) | Claude (Anthropic) | Apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque |
-| 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
+| 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da pontuação dos cenários a partir dos pontos de exploração, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
 
 **Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à
 aderência ao enunciado, à consistência com o vocabulário fixado na seção 3.1 (atores,
