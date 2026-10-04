@@ -74,4 +74,20 @@
 
 ## Resiliência e arquitetura do T2
 
-> *Pendente.*
+> Inclui também a escala e a pontuação de risco de `docs/riscos.md`.
+
+- Reutiliza a referência **3** (OWASP OAT): **OAT-021 Denial of Inventory** caracteriza a
+  ameaça prioritária e sustenta a nota de probabilidade 3.
+- Reutiliza a referência **4** (Anderson): a assimetria de custos entre atacante e defensor
+  sustenta o critério de que um controle se justifica quando custa mais para A2 do que
+  para A1.
+
+### Ferramentas utilizadas nesta seção
+
+- **Mermaid (mermaid-cli)** — diagrama de arquitetura do Trabalho 2. Fonte editável em
+  `diagramas/arquitetura-t2.mmd`, exportado para `diagramas/arquitetura-t2.svg` e `.png`.
+
+### Ferramentas de IA generativa utilizadas nesta seção
+
+- **Claude (Anthropic)** — apoio à redação e estruturação da escala de risco, da resposta à
+  ameaça prioritária e do diagrama de arquitetura.
