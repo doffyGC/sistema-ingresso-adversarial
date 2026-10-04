@@ -236,7 +236,65 @@ tracejadas são a adaptação para a seguinte.
 
 ## Resiliência, resposta e arquitetura do Trabalho 2
 
-> *Pendente.*
+> **Desenvolvimento completo em [`docs/resiliencia.md`](docs/resiliencia.md):** os seis
+> controles com a interface que cada um afeta, os indicadores de observabilidade, o
+> vazamento de informação controle a controle, as mitigações para A1 e os componentes do
+> Trabalho 2. Escala e pontuação em [`docs/riscos.md`](docs/riscos.md). Abaixo, o resumo.
+
+**Ameaça prioritária:** imobilização de estoque — A2 abre reservas em massa sem intenção de
+pagar e recaptura o ingresso quando ele expira, explorando **P2** pelas interfaces F2 e F3
+(OWASP OAT-021). Risco **9 (3 × 3)**: reservar não custa nada e a ameaça atinge ao mesmo
+tempo a disponibilidade e a justiça da alocação. *A prioridade é confirmada quando os demais
+cenários da seção 3.4 forem pontuados.*
+
+**Resposta.** A rodada 3 do 3.3 encarece a imobilização; o redesenho ataca a falha do
+pressuposto — o estoque liberado voltava para quem monitora em alta frequência.
+
+| # | Controle | O que ataca |
+|-:|---|---|
+| **R1** | Ingresso expirado é oferecido ao próximo da fila sorteada, sem voltar à disponibilidade pública | A recaptura |
+| **R2** | Limite de reservas ativas por conta e por cluster | A escala: *n* ingressos retidos exigem *n* identidades |
+| **R3** | Pré-autorização do cartão na reserva, ou Pix imediato | O custo zero de reservar sem pagar (P5) |
+| **R4** | TTL curto com prorrogação única se o pagamento já começou | O tempo de imobilização, sem punir quem paga devagar |
+| **R5** | Expirações repetidas levam ao fim da fila no evento, sem bloqueio | A repetição do ciclo, com penalidade reversível |
+| **R6** | Mensagem genérica e cancelamento *a posteriori* só para cluster confirmado | O aprendizado de A2 sobre os limiares |
+
+A observabilidade mede os dois lados: conversão reserva → pagamento por cluster, fração do
+estoque em reserva ativa e periodicidade da disponibilidade (o ataque), e desistência e
+contestações de A1 (o custo da defesa).
+
+**As seis perguntas da ameaça prioritária:**
+
+1. **Como responder?** R1–R6. O objetivo não é impedir A2 de comprar, e sim tirar a
+   imobilização do repertório: se reter não rende, A2 só ganha comprando de verdade.
+2. **Que informação a resposta revela?** R1–R3 são regras anunciadas, e conhecê-las não
+   ajuda a contorná-las. R5 e R6 são detecção, e por isso dão sinal genérico e atrasado — o
+   erro da rodada 1 foi expor o limiar de uma detecção.
+3. **Como A2 se adapta?** Pulveriza reservas em identidades reais, absorve a
+   pré-autorização com capital e cartões virtuais, paga uma fração para camuflar a
+   conversão, multiplica posições na fila ou troca imobilização por compra. Todas levam ao
+   custo de identidade: a disputa migra de P2 para P1.
+4. **Efeitos sobre A1?** Quem não tem cartão (mitigado pelo Pix), quem paga devagar
+   (prorrogação), quem tem cartão recusado (penalidade só após várias expirações) e, o mais
+   grave, o cancelamento indevido (só para cluster confirmado, com contestação). Quem
+   reserva e paga em tempo não vê nenhum passo novo.
+5. **Risco residual?** Imobilização em escala menor com identidades reais, atraso de
+   detecção, adversário com capital, falsos positivos e acumulação por compra. O risco cai
+   de **9 para 4 (2 × 2, médio)**; baixar mais exige atuar sobre P1 (rodada 4).
+6. **O que preservar?** Alocação pelas regras anunciadas; uma reserva = um ingresso;
+   todo estoque liberado volta a circular em tempo limitado; um caminho para A1 sem meios
+   especiais; penalidades proporcionais e reversíveis; o custo da defesa medido junto com o
+   ataque.
+
+### Arquitetura do Trabalho 2
+
+![Arquitetura proposta para o Trabalho 2](diagramas/arquitetura-t2.svg)
+
+Fonte editável em `diagramas/arquitetura-t2.mmd` (Mermaid). Cada componente implementa um
+ou mais controles R1–R6; linhas contínuas são requisições e transições de estado, tracejadas
+são telemetria e detecção. O núcleo é a máquina de estados do ingresso
+(`DISPONIVEL → RESERVADO → VENDIDO`, com expiração para `OFERTADO_FILA`): é ela que garante
+que o ingresso expirado nunca fique visível a quem monitora a disponibilidade.
 
 ---
 
@@ -250,15 +308,15 @@ sistema-ingresso-adversarial/
 │   ├── modelo-estatico.md        3.2
 │   ├── modelo-dinamico.md        3.3
 │   ├── ameacas.md                3.4        (pendente)
-│   ├── riscos.md                 3.4        (pendente)
-│   └── resiliencia.md                       (pendente)
+│   ├── riscos.md                 3.4        (parcial)
+│   └── resiliencia.md            resiliência e arquitetura do T2
 ├── diagramas/
 │   ├── contexto.svg              Fig. 1 - DFD nivel 0
 │   ├── contexto-fluxo.svg        Fig. 2 - fluxo interno
 │   ├── contexto-legenda.svg      legenda das duas
 │   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte (+ .svg, .png)
 │   ├── superficie-ataque.*                  (pendente)
-│   └── arquitetura-t2.*                     (pendente)
+│   └── arquitetura-t2.mmd        fonte (+ .svg, .png)
 └── fontes/
     └── referencias.md            colaborativo
 ```
@@ -278,6 +336,7 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 | 3.1 | Claude (Anthropic) | Apoio à redação e estruturação |
 | 3.2 | *a preencher pelo autor da seção* | |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
+| 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
 
 **Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à
 aderência ao enunciado, à consistência com o vocabulário fixado na seção 3.1 (atores,
