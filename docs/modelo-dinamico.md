@@ -184,10 +184,7 @@ uma plataforma real.
 
 ![Ciclo adaptativo em quatro rodadas](../diagramas/ciclo-adaptativo.png)
 
-**Fonte editável:** `diagramas/ciclo-adaptativo.mmd` (Mermaid). **Exportado:**
-`diagramas/ciclo-adaptativo.svg` e `.png`. A figura acima referencia o `.png` porque o
-SVG do Mermaid guarda os rótulos em `foreignObject`, que não é renderizado quando o SVG é
-embutido como imagem.
+**Fonte editável:** [Figma](https://www.figma.com/design/q2NAClihvDD5Txs2FhkKdm/Ciclo-Adaptativo?node-id=3-2). **Exportado:** `diagramas/ciclo-adaptativo.png`.
 
 Cada bloco é uma rodada, com a ação de A2 (vermelho), a resposta de A3 (azul), o que se
 torna observável (branco) e o custo para A1 (verde) — as cores da legenda da seção 3.1. As

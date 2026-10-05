@@ -231,7 +231,7 @@ também a transparência para A1.
 
 ![Ciclo adaptativo em quatro rodadas](diagramas/ciclo-adaptativo.png)
 
-Fonte editável em `diagramas/ciclo-adaptativo.mmd` (Mermaid). Cores da legenda do 3.1:
+Fonte editável no [Figma](https://www.figma.com/design/q2NAClihvDD5Txs2FhkKdm/Ciclo-Adaptativo?node-id=3-2), exportada para `diagramas/ciclo-adaptativo.png`. Cores da legenda do 3.1:
 vermelho A2, azul A3, branco observável, verde A1. Setas contínuas ocorrem dentro da rodada;
 tracejadas são a adaptação para a seguinte.
 
@@ -286,7 +286,7 @@ Todas as interfaces F1 a F7 e todos os pressupostos P1 a P5 têm pelo menos um p
 
 ![Diagrama de superfície de ataque](diagramas/superficie-de-ataque.png)
 
-Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
+Fonte editável no [Figma](https://www.figma.com/design/nq9MDoLrefjunzNgOmu31n/Arquivo?node-id=51-2), exportada para `diagramas/superficie-de-ataque.png`. Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
 
 ### Cenários de ameaça e riscos
 
@@ -445,8 +445,8 @@ sistema-ingresso-adversarial/
 │   ├── contexto.png              Fig. 1 - DFD nivel 0        (fonte: board FigJam)
 │   ├── contexto-fluxo.png        Fig. 2 - fluxo interno      (fonte: board FigJam)
 │   ├── contexto-legenda.png      legenda das duas            (fonte: board FigJam)
-│   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte editavel     (+ .svg, .png)
-│   ├── superficie-de-ataque.mmd  Fig. 4 - fonte editavel     (+ .svg, .png)
+│   ├── ciclo-adaptativo.png      Fig. 3 - só .png            (fonte: arquivo Figma)
+│   ├── superficie-de-ataque.png  Fig. 4 - só .png            (fonte: arquivo Figma)
 │   └── arquitetura-t2.mmd        Fig. 5 - fonte editavel     (+ .svg, .png)
 └── fontes/
     └── referencias.md            colaborativo
