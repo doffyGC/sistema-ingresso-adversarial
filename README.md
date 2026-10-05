@@ -1,7 +1,38 @@
 # Trabalho 1 — Análise de um Sistema Adversarial
 
+**Universidade Federal do Pampa (Unipampa) — Engenharia de Software Adversarial**
+
 **Sistema analisado:** plataforma de venda e reserva de ingressos — disputa por ingressos
 de um evento de alta demanda.
+
+### A pergunta que este trabalho responde
+
+> **O que torna esse sistema adversarial, como os participantes tomam decisões e como a
+> interação evolui ao longo das rodadas?**
+
+O sistema é adversarial porque um comprador que automatiza tentativas (**A2**) lucra com
+as regras de venda **funcionando exatamente como projetadas**, e porque a plataforma
+(**A3**) não consegue distingui-lo do comprador legítimo (**A1**) no momento em que
+precisa decidir. Os dois decidem sob informação incompleta e assimétrica: A2 observa o
+*resultado* das regras e infere as regras; A3 observa o *comportamento* de A2, mas não sua
+identidade nem sua intenção. A interação evolui porque **toda resposta da plataforma é
+também um sinal** — cada bloqueio, código de erro ou CAPTCHA ensina A2 onde está o limiar,
+e cada defesa nova vira uma regra nova que pode ser explorada. O resultado é uma escalada
+em que o recurso em disputa migra de velocidade para contas, e de contas para pessoas, com
+o custo recaindo progressivamente sobre A1.
+
+### Sumário
+
+| Seção | Resumo no README | Documento completo |
+|---|---|---|
+| 3.1 Descrição do sistema adversarial | [ir](#31-descrição-do-sistema-adversarial) | [`docs/contexto.md`](docs/contexto.md) |
+| 3.2 Modelo estratégico estático | [ir](#32-modelo-estratégico-estático) | [`docs/modelo-estatico.md`](docs/modelo-estatico.md) |
+| 3.3 Modelo estratégico dinâmico | [ir](#33-modelo-estratégico-dinâmico) | [`docs/modelo-dinamico.md`](docs/modelo-dinamico.md) |
+| 3.4 Superfície de ataque | [ir](#superfície-de-ataque) | [`docs/superficie-ataque.md`](docs/superficie-ataque.md) |
+| 3.4 Cenários de ameaça e riscos | [ir](#cenários-de-ameaça-e-riscos) | [`docs/ameacas.md`](docs/ameacas.md), [`docs/riscos.md`](docs/riscos.md) |
+| Resiliência e arquitetura do T2 | [ir](#resiliência-resposta-e-arquitetura-do-trabalho-2) | [`docs/resiliencia.md`](docs/resiliencia.md), [`docs/decisoes-arquitetura.md`](docs/decisoes-arquitetura.md) |
+| Pergunta final | [ir](#pergunta-final) | — |
+| Contribuições, referências e uso de IA | [ir](#contribuições-individuais) | [`fontes/referencias.md`](fontes/referencias.md) |
 
 ---
 
@@ -66,7 +97,7 @@ estoque e **P3**, a confiança no processo.
 
 ### Diagrama de contexto
 
-![Diagrama de contexto em notação DFD nível 0](diagramas/contexto.svg)
+![Diagrama de contexto em notação DFD nível 0](diagramas/contexto.png)
 
 DFD nível 0: o **processo 0** no centro é o sistema inteiro, as **entidades externas** são
 retângulos e as setas são fluxos de dados rotulados apenas com o identificador. Depósitos de
@@ -198,7 +229,7 @@ também a transparência para A1.
 
 ### Diagrama do ciclo adaptativo
 
-![Ciclo adaptativo em quatro rodadas](diagramas/ciclo-adaptativo.svg)
+![Ciclo adaptativo em quatro rodadas](diagramas/ciclo-adaptativo.png)
 
 Fonte editável em `diagramas/ciclo-adaptativo.mmd` (Mermaid). Cores da legenda do 3.1:
 vermelho A2, azul A3, branco observável, verde A1. Setas contínuas ocorrem dentro da rodada;
@@ -253,7 +284,7 @@ Todas as interfaces F1 a F7 e todos os pressupostos P1 a P5 têm pelo menos um p
 
 **A superfície cresce com a defesa.** PE6, PE7 e PE8 não existiam no estado inicial: foram criados pelas respostas de A3 nas rodadas 1 e 2. Toda defesa é também uma regra, e toda regra que A2 consegue observar passa a fazer parte da superfície.
 
-![Diagrama de superfície de ataque](diagramas/superficie-de-ataque.svg)
+![Diagrama de superfície de ataque](diagramas/superficie-de-ataque.png)
 
 Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
 
@@ -284,11 +315,11 @@ Cada cenário parte de uma cadeia de pontos de exploração acima:
   o agente é humano), causando **a perda de efeito da detecção e o bloqueio de compradores
   legítimos** sobre a **justiça da alocação e a confiança no processo**.
 
-| ID | Cenário | Cadeia | Ativo afetado | P | I | Risco |
-|---|---|---|---|-:|-:|-:|
-| **T1** | Imobilização e recaptura | PE2 → PE3 → PE1 | Disponibilidade, justiça | 3 | 3 | **9** |
-| **T2** | Escala por identidades | PE4 → PE8, com PE5 | Justiça, integridade das reservas | 2 | 3 | **6** |
-| **T3** | Calibragem pelos limiares | PE7 → PE6 → PE4 | Justiça, confiança | 3 | 2 | **6** |
+| ID | Cenário | Ponto de exploração | Pressuposto ou fraqueza | Ativo afetado | P | I | Risco |
+|---|---|---|---|---|-:|-:|-:|
+| **T1** | Imobilização e recaptura | PE2 → PE3 → PE1 (F2, F3, F1) | P2, P4, P5 | Disponibilidade do estoque, justiça da alocação | 3 | 3 | **9** |
+| **T2** | Escala por identidades | PE4 → PE8, com PE5 (F5, F6, F2) | P1, P5; verificação do limite sem atomicidade | Justiça da alocação, integridade das reservas | 2 | 3 | **6** |
+| **T3** | Calibragem pelos limiares | PE7 → PE6 → PE4 (F7, F1, F2) | P3, P5 | Justiça da alocação, confiança no processo | 3 | 2 | **6** |
 
 Risco = probabilidade × impacto, cada um de 1 a 3; 6–9 é alto, 3–4 médio, 1–2 baixo.
 
@@ -297,7 +328,9 @@ Risco = probabilidade × impacto, cada um de 1 a 3; 6–9 é alto, 3–4 médio,
 > **Desenvolvimento completo em [`docs/resiliencia.md`](docs/resiliencia.md):** os seis
 > controles com a interface que cada um afeta, os indicadores de observabilidade, o
 > vazamento de informação controle a controle, as mitigações para A1 e os componentes do
-> Trabalho 2. Escala e pontuação em [`docs/riscos.md`](docs/riscos.md). Abaixo, o resumo.
+> Trabalho 2. Escala e pontuação em [`docs/riscos.md`](docs/riscos.md); invariantes,
+> registros de decisão e critérios de aceite do protótipo em
+> [`docs/decisoes-arquitetura.md`](docs/decisoes-arquitetura.md). Abaixo, o resumo.
 
 **Ameaça prioritária:** imobilização de estoque (T1) — A2 abre reservas em massa sem
 intenção de pagar e recaptura o ingresso quando ele expira, pela cadeia **PE2 → PE3 → PE1**,
@@ -346,13 +379,50 @@ contestações de A1 (o custo da defesa).
 
 ### Arquitetura do Trabalho 2
 
-![Arquitetura proposta para o Trabalho 2](diagramas/arquitetura-t2.svg)
+![Arquitetura proposta para o Trabalho 2](diagramas/arquitetura-t2.png)
 
 Fonte editável em `diagramas/arquitetura-t2.mmd` (Mermaid). Cada componente implementa um
 ou mais controles R1–R6; linhas contínuas são requisições e transições de estado, tracejadas
 são telemetria e detecção. O núcleo é a máquina de estados do ingresso
 (`DISPONIVEL → RESERVADO → VENDIDO`, com expiração para `OFERTADO_FILA`): é ela que garante
 que o ingresso expirado nunca fique visível a quem monitora a disponibilidade.
+
+---
+
+## Pergunta final
+
+> **Depois que o sistema responder, o que o outro lado aprenderá e tentará fazer em
+> seguida?**
+
+Depois da resposta R1–R6 à imobilização de estoque (T1), A2 aprende três coisas, nessa
+ordem:
+
+1. **Que a recaptura morreu, e aprende isso rápido.** R1 manda o ingresso expirado para a
+   fila em vez de devolvê-lo à disponibilidade pública, então monitorar F1 em alta
+   frequência deixa de render. É um aprendizado que A3 *quer* que aconteça: quanto antes
+   A2 concluir que reter não paga, antes ele sai do repertório da imobilização.
+2. **Que o gargalo virou a identidade.** Com uma reserva ativa por conta (R2) e
+   pré-autorização no ato da reserva (R3), imobilizar *n* ingressos passa a exigir *n*
+   identidades com cartão próprio. A disputa migra de **P2** (a reserva volta a circular)
+   para **P1** (uma identidade é uma pessoa) — exatamente a rodada 4 do modelo dinâmico.
+3. **Que o sinal ficou pior, mas não sumiu.** R5 e R6 dão resposta genérica e atrasada, e
+   A2 não consegue mais ligar causa a efeito em uma tentativa isolada. Em compensação,
+   comparando muitas contas ao longo de várias aberturas, ele ainda estima o critério que
+   agrupa contas em um *cluster* e o número de expirações que derruba a posição na fila.
+
+**O que ele tentará fazer:** pulverizar as reservas em identidades reais que não se
+correlacionam, absorver a pré-autorização com capital e cartões virtuais, pagar uma fração
+das reservas só para manter a conversão do *cluster* acima do limiar de suspeita, e — a
+adaptação mais interessante — **ocupar a fila em vez do estoque**, porque R1 acabou de
+transformar cada posição na fila também em um bilhete para os ingressos devolvidos. A
+própria defesa fortaleceu PE8.
+
+**E é por isso que a resposta não é uma solução.** O risco de T1 cai de 9 para 4, não para
+zero, e o que sobra reaparece com outro nome: é o cenário T2, escala por identidades. A
+resposta seguinte de A3 (verificação seletiva) move a disputa mais um degrau, de contas
+para pessoas, e cada degrau é mais caro para os dois lados e mais invasivo para A1. O ciclo
+não termina — o que A3 pode fazer é escolher **onde** ele continua, garantindo que o
+próximo degrau custe mais a A2 do que ao comprador legítimo, e medir as duas coisas juntas.
 
 ---
 
@@ -368,27 +438,33 @@ sistema-ingresso-adversarial/
 │   ├── superficie-ataque.md      3.4        superfície de ataque
 │   ├── ameacas.md                3.4        cenários de ameaça
 │   ├── riscos.md                 3.4        escala e pontuação
-│   └── resiliencia.md            resiliência e arquitetura do T2
-├── diagramas/
-│   ├── contexto.svg              Fig. 1 - DFD nivel 0
-│   ├── contexto-fluxo.svg        Fig. 2 - fluxo interno
-│   ├── contexto-legenda.svg      legenda das duas
-│   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte (+ .svg, .png)
-│   ├── superficie-de-ataque.mmd  Fig. 4 - fonte (+ .svg, .png)
-│   └── arquitetura-t2.mmd        fonte (+ .svg, .png)
+│   ├── resiliencia.md            resiliência e arquitetura do T2
+│   ├── decisoes-arquitetura.md   invariantes e decisões verificáveis do T2
+│   └── Enunciado.md              cópia do enunciado, para referência
+├── diagramas/                    cada figura em .svg + .png; os documentos usam o .png
+│   ├── contexto.png              Fig. 1 - DFD nivel 0        (fonte: board FigJam)
+│   ├── contexto-fluxo.png        Fig. 2 - fluxo interno      (fonte: board FigJam)
+│   ├── contexto-legenda.png      legenda das duas            (fonte: board FigJam)
+│   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte editavel     (+ .svg, .png)
+│   ├── superficie-de-ataque.mmd  Fig. 4 - fonte editavel     (+ .svg, .png)
+│   └── arquitetura-t2.mmd        Fig. 5 - fonte editavel     (+ .svg, .png)
 └── fontes/
     └── referencias.md            colaborativo
 ```
 
 ## Contribuições individuais
 
-Cada integrante registra a própria linha; os commits correspondentes estão no histórico do
-repositório.
+Derivada do histórico do repositório; cada contribuição abaixo é rastreável por
+`git log --author=...`.
 
 | Integrante | Seções | Artefatos |
 |---|---|---|
-| Lorenzo Ponsi Ficher | 3.4 (cenários e riscos) e resiliência | `docs/ameacas.md` (cenários T1–T3 e rastreabilidade), `docs/riscos.md` (escala de risco, pontuação dos cenários T1–T3, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes neste README |
-| *a preencher* | | |
+| **Guilherme Mundt** | 3.1 — descrição do sistema adversarial | `docs/contexto.md` (delimitação da interação, atores A1–A3, ativos, capacidades e observáveis, restrições, pressupostos P1–P5, interfaces F1–F7, dicionário de fluxos f1–f8), `diagramas/contexto.*`, `contexto-fluxo.*` e `contexto-legenda.*`, resumo da 3.1 no README e referências da seção |
+| **Talysson Aguinario** | 3.2 — modelo estratégico estático | `docs/modelo-estatico.md` (jogo A2 × A3, ações R/I e P/C, matriz de payoffs e justificativa, melhores respostas, ausência de estratégia dominante, equilíbrio em estratégias mistas e limitações) |
+| **Pietro Prauchner** | 3.3 — modelo estratégico dinâmico | `docs/modelo-dinamico.md` (ciclo ação → resposta → observação → adaptação, quatro rodadas com custo para A1, condição econômica da corrida armamentista e perguntas de fechamento), `diagramas/ciclo-adaptativo.*`, resumos da 3.2 e da 3.3 no README, declaração de uso de IA e `docs/Enunciado.md` |
+| **Rafaela Nunes** | 3.4 — superfície de ataque | `docs/superficie-ataque.md` (fronteira de confiança, pontos de exploração PE1–PE8, cobertura de interfaces e pressupostos, cadeias de exploração), `diagramas/superficie-de-ataque.*`, resumo no README e referências da seção |
+| **Lorenzo Ficher** | 3.4 — cenários e riscos; resiliência | `docs/ameacas.md` (cenários T1–T3 e rastreabilidade), `docs/riscos.md` (escala de risco, pontuação dos cenários, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes no README |
+| **Inaurrara Rozado** | Arquitetura do Trabalho 2 | `docs/decisoes-arquitetura.md` (invariantes do domínio INV1–INV7, registros de decisão DA1–DA5, comportamento sob falha e critérios de aceite do protótipo), refinamento de `docs/resiliencia.md` e do diagrama `diagramas/arquitetura-t2.*` |
 
 ## Referências
 
@@ -403,7 +479,7 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 |---|---|---|
 | 3.1 | ChatGPT (OpenAI) | *Brainstorming* da escolha do sistema e do recorte da interação |
 | 3.1 | Claude (Anthropic) | Apoio à redação e estruturação |
-| 3.2 | *a preencher pelo autor da seção* | |
+| 3.2 | ChatGPT (OpenAI) | Apoio à redação e estruturação da matriz de payoffs, da justificativa das preferências e da análise de melhores respostas e equilíbrio |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
 | 3.4 (superfície de ataque) | Claude (Anthropic) | Apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque |
 | 3.4 (cenários de ameaça) | Claude (Anthropic) | Apoio à redação dos cenários T1–T3 no formato do enunciado e da tabela de rastreabilidade |
