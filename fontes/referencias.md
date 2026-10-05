@@ -9,7 +9,7 @@
 
 **Formato dos diagramas.** Cada figura é entregue em três arquivos: o **arquivo-fonte
 editável** (`.mmd` para Mermaid, board do FigJam para os diagramas de contexto), o `.svg`
-e o `.png`. Os documentos referenciam o `.png`, porque o SVG gerado pelo Mermaid guarda
+e o `.png`. A exceção é a superfície de ataque (Fig. 4): a fonte editável é um arquivo do Figma e a figura é entregue só em `.png`, exportado dele. Os documentos referenciam o `.png`, porque o SVG gerado pelo Mermaid guarda
 os rótulos de texto em `foreignObject`, que os navegadores não renderizam quando o SVG é
 embutido como imagem — no GitHub, a figura apareceria sem nenhum texto.
 
@@ -102,7 +102,7 @@ embutido como imagem — no GitHub, a figura apareceria sem nenhum texto.
 
 ### Ferramentas utilizadas nesta seção
 
-- **Mermaid (mermaid-cli)**: diagrama de superfície de ataque. Fonte editável em `diagramas/superficie-de-ataque.mmd`, exportado para `diagramas/superficie-de-ataque.svg` e `.png`.
+- **Figma**: diagrama de superfície de ataque. Fonte editável em `https://www.figma.com/design/nq9MDoLrefjunzNgOmu31n/Arquivo?node-id=51-2`, exportado para `diagramas/superficie-de-ataque.png`.
 
 ### Ferramentas de IA generativa utilizadas nesta seção
 

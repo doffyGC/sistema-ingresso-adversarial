@@ -286,7 +286,7 @@ Todas as interfaces F1 a F7 e todos os pressupostos P1 a P5 têm pelo menos um p
 
 ![Diagrama de superfície de ataque](diagramas/superficie-de-ataque.png)
 
-Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
+Fonte editável no [Figma](https://www.figma.com/design/nq9MDoLrefjunzNgOmu31n/Arquivo?node-id=51-2), exportada para `diagramas/superficie-de-ataque.png`. Cores da legenda do 3.1; bandeiras laranja são os pontos de exploração, ligados por linha pontilhada ao componente onde a regra explorada está. Contorno grosso marca os pontos criados pela defesa.
 
 ### Cenários de ameaça e riscos
 
@@ -446,7 +446,7 @@ sistema-ingresso-adversarial/
 │   ├── contexto-fluxo.png        Fig. 2 - fluxo interno      (fonte: board FigJam)
 │   ├── contexto-legenda.png      legenda das duas            (fonte: board FigJam)
 │   ├── ciclo-adaptativo.mmd      Fig. 3 - fonte editavel     (+ .svg, .png)
-│   ├── superficie-de-ataque.mmd  Fig. 4 - fonte editavel     (+ .svg, .png)
+│   ├── superficie-de-ataque.png  Fig. 4 - só .png            (fonte: arquivo Figma)
 │   └── arquitetura-t2.mmd        Fig. 5 - fonte editavel     (+ .svg, .png)
 └── fontes/
     └── referencias.md            colaborativo
