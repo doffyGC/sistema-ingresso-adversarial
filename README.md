@@ -259,7 +259,38 @@ Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da lege
 
 ### Cenários de ameaça e riscos
 
-> *Pendente.* Os cenários usam os pontos PE1 a PE8 acima; escala e pontuação em [`docs/riscos.md`](docs/riscos.md).
+> **Desenvolvimento completo em [`docs/ameacas.md`](docs/ameacas.md)** (como cada cenário
+> acontece, por que é adversarial e não erro, rastreabilidade) **e
+> [`docs/riscos.md`](docs/riscos.md)** (escala, critérios de cada nível e justificativa das
+> notas). Os IDs são `T1`–`T3` porque `A1`–`A3` já são os atores da seção 3.1.
+
+Cada cenário parte de uma cadeia de pontos de exploração acima:
+
+- **T1 — Imobilização e recaptura.** Um **comprador adversarial (A2)** pode **abrir reservas
+  em massa sem intenção de pagar, deixá-las expirar e reservar de novo o ingresso quando ele
+  volta** por meio de **PE2 → PE3 → PE1**, aproveitando **P2** (reserva não paga volta a
+  circular para outro comprador), causando **a retirada do estoque de circulação e sua
+  concentração em quem monitora em alta frequência** sobre a **disponibilidade do estoque
+  e a justiça da alocação**.
+- **T2 — Escala por identidades.** Um **comprador adversarial (A2)** pode **multiplicar
+  contas para multiplicar o limite de 4 ingressos e as posições na fila, com requisições
+  simultâneas para passar do limite** por meio de **PE4 → PE8, com PE5**, aproveitando
+  **P1** (uma identidade é uma pessoa) **e a verificação do limite sem atomicidade**,
+  causando **o desvio do lote para quem controla mais contas** sobre a **justiça da
+  alocação e a integridade das reservas**.
+- **T3 — Calibragem pelos limiares.** Um **comprador adversarial (A2)** pode **usar as
+  mensagens de rejeição para descobrir os limiares e operar logo abaixo deles, rotacionando
+  IPs e contas** por meio de **PE7 → PE6 → PE4**, aproveitando **P3** (a cadência revela se
+  o agente é humano), causando **a perda de efeito da detecção e o bloqueio de compradores
+  legítimos** sobre a **justiça da alocação e a confiança no processo**.
+
+| ID | Cenário | Cadeia | Ativo afetado | P | I | Risco |
+|---|---|---|---|-:|-:|-:|
+| **T1** | Imobilização e recaptura | PE2 → PE3 → PE1 | Disponibilidade, justiça | 3 | 3 | **9** |
+| **T2** | Escala por identidades | PE4 → PE8, com PE5 | Justiça, integridade das reservas | 2 | 3 | **6** |
+| **T3** | Calibragem pelos limiares | PE7 → PE6 → PE4 | Justiça, confiança | 3 | 2 | **6** |
+
+Risco = probabilidade × impacto, cada um de 1 a 3; 6–9 é alto, 3–4 médio, 1–2 baixo.
 
 ## Resiliência, resposta e arquitetura do Trabalho 2
 
@@ -268,11 +299,11 @@ Fonte editável em `diagramas/superficie-de-ataque.mmd` (Mermaid). Cores da lege
 > vazamento de informação controle a controle, as mitigações para A1 e os componentes do
 > Trabalho 2. Escala e pontuação em [`docs/riscos.md`](docs/riscos.md). Abaixo, o resumo.
 
-**Ameaça prioritária:** imobilização de estoque — A2 abre reservas em massa sem intenção de
-pagar e recaptura o ingresso quando ele expira, explorando **P2** pelas interfaces F2 e F3
-(OWASP OAT-021). Risco **9 (3 × 3)**: reservar não custa nada e a ameaça atinge ao mesmo
-tempo a disponibilidade e a justiça da alocação. *A prioridade é confirmada quando os demais
-cenários da seção 3.4 forem pontuados.*
+**Ameaça prioritária:** imobilização de estoque (T1) — A2 abre reservas em massa sem
+intenção de pagar e recaptura o ingresso quando ele expira, pela cadeia **PE2 → PE3 → PE1**,
+explorando **P2** (OWASP OAT-021). Risco **9 (3 × 3)**: reservar não custa nada e a ameaça
+atinge ao mesmo tempo a disponibilidade e a justiça da alocação. É a prioritária porque os
+demais cenários pontuados, T2 e T3, ficam em 6.
 
 **Resposta.** A rodada 3 do 3.3 encarece a imobilização; o redesenho ataca a falha do
 pressuposto — o estoque liberado voltava para quem monitora em alta frequência.
@@ -335,8 +366,8 @@ sistema-ingresso-adversarial/
 │   ├── modelo-estatico.md        3.2
 │   ├── modelo-dinamico.md        3.3
 │   ├── superficie-ataque.md      3.4        superfície de ataque
-│   ├── ameacas.md                3.4        (pendente)
-│   ├── riscos.md                 3.4        (parcial)
+│   ├── ameacas.md                3.4        cenários de ameaça
+│   ├── riscos.md                 3.4        escala e pontuação
 │   └── resiliencia.md            resiliência e arquitetura do T2
 ├── diagramas/
 │   ├── contexto.svg              Fig. 1 - DFD nivel 0
@@ -348,6 +379,16 @@ sistema-ingresso-adversarial/
 └── fontes/
     └── referencias.md            colaborativo
 ```
+
+## Contribuições individuais
+
+Cada integrante registra a própria linha; os commits correspondentes estão no histórico do
+repositório.
+
+| Integrante | Seções | Artefatos |
+|---|---|---|
+| Lorenzo Ponsi Ficher | 3.4 (cenários e riscos) e resiliência | `docs/ameacas.md` (cenários T1–T3 e rastreabilidade), `docs/riscos.md` (escala de risco, pontuação dos cenários T1–T3, ameaça prioritária e risco residual), `docs/resiliencia.md` (controles R1–R6 ligados aos pontos de exploração, observabilidade, adaptação, efeitos colaterais e arquitetura do Trabalho 2), `diagramas/arquitetura-t2.*` e os resumos correspondentes neste README |
+| *a preencher* | | |
 
 ## Referências
 
@@ -365,7 +406,8 @@ utilizadas, as tarefas em que foram empregadas e como o conteúdo foi verificado
 | 3.2 | *a preencher pelo autor da seção* | |
 | 3.3 | Claude (Anthropic) | Apoio à redação e estruturação do modelo dinâmico, das rodadas e do diagrama do ciclo adaptativo |
 | 3.4 (superfície de ataque) | Claude (Anthropic) | Apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque |
-| 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
+| 3.4 (cenários de ameaça) | Claude (Anthropic) | Apoio à redação dos cenários T1–T3 no formato do enunciado e da tabela de rastreabilidade |
+| 3.4 (riscos) e resiliência | Claude (Anthropic) | Apoio à redação e estruturação da escala de risco, da pontuação dos cenários a partir dos pontos de exploração, da resposta à ameaça prioritária e do diagrama de arquitetura do Trabalho 2 |
 
 **Como o conteúdo foi verificado:** todo texto gerado foi revisado manualmente quanto à
 aderência ao enunciado, à consistência com o vocabulário fixado na seção 3.1 (atores,
