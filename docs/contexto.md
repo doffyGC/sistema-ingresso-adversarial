@@ -315,9 +315,10 @@ detalha o interior da interação e serve de insumo para as seções 3.3 e 3.4.
 
 ### Figura 1 — Diagrama de contexto (DFD nível 0)
 
-![Diagrama de contexto em notação DFD nível 0](../diagramas/contexto.svg)
+![Diagrama de contexto em notação DFD nível 0](../diagramas/contexto.png)
 
-**Exportado:** `diagramas/contexto.svg`
+**Fonte editável:** board FigJam do grupo (link em [`fontes/referencias.md`](../fontes/referencias.md)).
+**Exportado:** `diagramas/contexto.svg` (vetorial) e `diagramas/contexto.png` (usado acima).
 
 A notação segue a convenção de diagrama de contexto (DFD nível 0, Yourdon/DeMarco):
 
@@ -359,9 +360,10 @@ A notação segue a convenção de diagrama de contexto (DFD nível 0, Yourdon/D
 
 ### Figura 2 — Fluxo interno da interação (complementar)
 
-![Fluxo interno da interação entre compradores, plataforma, estoque e mercado](../diagramas/contexto-fluxo.svg)
+![Fluxo interno da interação entre compradores, plataforma, estoque e mercado](../diagramas/contexto-fluxo.png)
 
-**Exportado:** `diagramas/contexto-fluxo.svg`
+**Fonte editável:** mesmo board FigJam.
+**Exportado:** `diagramas/contexto-fluxo.svg` e `diagramas/contexto-fluxo.png` (usado acima).
 
 A Figura 2 abre o processo 0 e mostra o que a Figura 1 precisa omitir por convenção: o
 **estoque de ingressos** como recurso disputado e sede do ativo, e os **sinais
@@ -371,7 +373,7 @@ que a seção 3.3 transforma em rodadas.
 
 ### Legenda (vale para as duas figuras)
 
-![Legenda do diagrama de contexto](../diagramas/contexto-legenda.svg)
+![Legenda do diagrama de contexto](../diagramas/contexto-legenda.png)
 
 A notação carrega três dimensões independentes: a **forma** indica o tipo de elemento, a
 **cor** indica o papel do elemento no conflito, e o **traço da linha** indica a natureza

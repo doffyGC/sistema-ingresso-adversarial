@@ -239,9 +239,11 @@ A linguagem e o *framework* serão escolhidos no Trabalho 2.
 
 ### Componentes
 
-![Arquitetura proposta para o Trabalho 2](../diagramas/arquitetura-t2.svg)
+![Arquitetura proposta para o Trabalho 2](../diagramas/arquitetura-t2.png)
 
-**Fonte editável:** `diagramas/arquitetura-t2.mmd` (Mermaid).
+**Fonte editável:** `diagramas/arquitetura-t2.mmd` (Mermaid). **Exportado:**
+`diagramas/arquitetura-t2.svg` e `.png` (a figura acima referencia o `.png`; ver nota em
+[`modelo-dinamico.md`](modelo-dinamico.md)).
 
 | Componente | Interface | Controle | Responsabilidade |
 |---|---|---|---|

@@ -151,9 +151,9 @@ A fila depende da regra de que **cada conta concorre com um bilhete e cada pesso
 
 ## 3. Diagrama de superfície de ataque
 
-![Diagrama de superfície de ataque](../diagramas/superficie-de-ataque.svg)
+![Diagrama de superfície de ataque](../diagramas/superficie-de-ataque.png)
 
-**Fonte editável:** `diagramas/superficie-de-ataque.mmd` (Mermaid). **Exportado:** `diagramas/superficie-de-ataque.svg` e `.png`.
+**Fonte editável:** `diagramas/superficie-de-ataque.mmd` (Mermaid). **Exportado:** `diagramas/superficie-de-ataque.svg` e `.png`. A figura acima referencia o `.png` porque o SVG do Mermaid guarda os rótulos em `foreignObject`, que não é renderizado quando o SVG é embutido como imagem.
 
 **Como ler.** As cores seguem a legenda da seção 3.1: verde A1, vermelho A2, azul os componentes da plataforma (A3), amarelo o estoque. O retângulo tracejado **Borda da API** é a fronteira de confiança; as interfaces F1 a F7 ficam sobre ela. As **bandeiras laranja** são os pontos de exploração PE1 a PE8, ligadas por linha pontilhada laranja ao componente onde a regra explorada está. Linhas contínuas pretas são requisições e transições de estado; a linha pontilhada preta de F7 até os compradores é a resposta que volta como sinal, a mesma para A1 e A2. Os pontos com contorno mais grosso (PE6, PE7, PE8) foram **criados por respostas de A3** nas rodadas 1 e 2. A bandeira fica dentro da região (borda ou interior) em que a regra explorada é aplicada.
 
