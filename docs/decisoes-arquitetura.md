@@ -8,15 +8,15 @@ regras que devem sempre ser verdadeiras, responsabilidades e comportamento sob f
 
 | ID | Invariante | Como verificar no Trabalho 2 |
 |---|---|---|
-| **I1** | Um ingresso ocupa exatamente um estado: `DISPONIVEL`, `RESERVADO`, `OFERTADO_FILA` ou `VENDIDO` | Teste automatizado após toda transição e consulta ao estoque dentro da mesma transação |
-| **I2** | No máximo uma reserva ativa referencia o mesmo ingresso | Restrição única no armazenamento e teste com reservas concorrentes |
-| **I3** | Uma identidade ou cluster não ultrapassa o limite de reservas ativas | Duas tentativas paralelas devem produzir uma aceitação e uma rejeição que possa ser repetida sem criar novo efeito |
-| **I4** | Ingresso expirado é oferecido à fila antes de voltar ao estoque público | Teste que monitora F1 durante `RESERVADO → OFERTADO_FILA` |
-| **I5** | Toda oferta à fila possui prazo; nenhum ingresso fica retido indefinidamente | Relógio simulado e teste de progresso até `RESERVADO` ou `DISPONIVEL` |
-| **I6** | Repetir a mesma requisição não cria outra reserva ou cobrança | Chave de idempotência e repetição do pedido sob falha de rede |
-| **I7** | Cancelamento de alto impacto mantém evidência, política aplicada e caminho de contestação | Auditoria do evento e teste do fluxo de revisão |
+| **INV1** | Um ingresso ocupa exatamente um estado: `DISPONIVEL`, `RESERVADO`, `OFERTADO_FILA` ou `VENDIDO` | Teste automatizado após toda transição e consulta ao estoque dentro da mesma transação |
+| **INV2** | No máximo uma reserva ativa referencia o mesmo ingresso | Restrição única no armazenamento e teste com reservas concorrentes |
+| **INV3** | Uma identidade ou cluster não ultrapassa o limite de reservas ativas | Duas tentativas paralelas devem produzir uma aceitação e uma rejeição que possa ser repetida sem criar novo efeito |
+| **INV4** | Ingresso expirado é oferecido à fila antes de voltar ao estoque público | Teste que monitora F1 durante `RESERVADO → OFERTADO_FILA` |
+| **INV5** | Toda oferta à fila possui prazo; nenhum ingresso fica retido indefinidamente | Relógio simulado e teste de progresso até `RESERVADO` ou `DISPONIVEL` |
+| **INV6** | Repetir a mesma requisição não cria outra reserva ou cobrança | Chave de idempotência e repetição do pedido sob falha de rede |
+| **INV7** | Cancelamento de alto impacto mantém evidência, política aplicada e caminho de contestação | Auditoria do evento e teste do fluxo de revisão |
 
-I1–I6 preservam disponibilidade e integridade mesmo se o Detector estiver indisponível.
+INV1–INV6 preservam disponibilidade e integridade mesmo se o Detector estiver indisponível.
 O componente analítico melhora a decisão, mas não pode ser requisito para o estoque
 continuar consistente.
 
@@ -87,7 +87,7 @@ continuar consistente.
 2. Repetir a mesma chave de idempotência retorna o mesmo resultado sem novo efeito.
 3. Uma reserva expirada nunca reaparece em F1 enquanto houver comprador elegível na fila.
 4. A segunda reserva ativa do mesmo cluster é rejeitada sem revelar qual limiar disparou.
-5. Falha simulada do Detector não viola I1–I6.
+5. Falha simulada do Detector não viola INV1–INV6.
 6. O painel apresenta conversão, estoque retido, periodicidade, desistência de A1 e
    contestações por versão da política.
 7. Um cancelamento registra evidência e pode ser revertido por contestação.

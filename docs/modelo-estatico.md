@@ -38,7 +38,7 @@ Os payoffs são apresentados como **(A2, A3)**. Usamos uma escala ordinal ilustr
 - **(I, P) = (4, 0):** A2 pode converter sua escala em vantagem sobre o estoque. A3 deixa de preservar adequadamente a justiça da alocação, e A1 pode ter menos acesso aos ingressos.
 - **(I, C) = (1, 2):** os controles elevam o custo de A2 e reduzem sua vantagem. A3 protege melhor o estoque, mas ainda suporta custo operacional e risco de atrasar ou bloquear A1.
 
-Os números traduzem essas preferências relativas: para A2, capturar mais ingressos com baixo custo é melhor; para A3, preservar a distribuição justa sem atrito excessivo é melhor. Essa escolha de valores deve ser validada pelo grupo e pelo professor; alterar as preferências pode mudar o equilíbrio.
+Os números traduzem essas preferências relativas: para A2, capturar mais ingressos com baixo custo é melhor; para A3, preservar a distribuição justa sem atrito excessivo é melhor. O que o modelo exige dos valores é apenas a **ordem**: para A2, `(I,P) > (R,P) > (R,C) > (I,C)`; para A3, `(R,P) > (I,C) > (R,C) > (I,P)`. Qualquer escala que preserve essas duas ordens produz as mesmas melhores respostas e o mesmo equilíbrio; inverter uma delas — por exemplo, supor que A3 prefira controlar mesmo diante de um comprador regular — muda o resultado, e é por isso que a ordem está justificada caso a caso acima.
 
 ## Melhores respostas e estratégias dominantes
 

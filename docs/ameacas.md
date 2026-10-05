@@ -27,7 +27,7 @@ ativos (seção 4), pressupostos P1 a P5 (seção 9) e interfaces F1 a F7 (seç�
 
 | Cadeia | Interfaces | Pressupostos | Rodada |
 |---|---|---|---|
-| PE2 → PE3 → PE1 | F2, F4, F3 → F1 | P2, P4, P5 | 3 |
+| PE2 → PE3 → PE1 | F2, F3, F1 (F4 contribui para PE2) | P2, P4, P5 | 3 |
 
 **Como acontece.** A2 reserva tudo o que consegue (F2), sem custo, e decide depois quais
 reservas pagar (F4). As demais expiram após 10 minutos (F3) e voltam à disponibilidade
@@ -69,7 +69,7 @@ defeito (contraexemplo da seção 3.1, seção 11). Aqui A2 **escolhe** disparar
 simultâneas, mede quantas passaram e repete; e as contas existem para contornar o limite,
 não para representar pessoas.
 
-**Catálogo.** OWASP OAT-019, *Account Creation* (ref. 3); MITRE CWE-367, TOCTOU (ref. 6), para a parte de PE5.
+**Catálogo.** OWASP OAT-019, *Account Creation* (ref. 3); MITRE CWE-367, TOCTOU (ref. 8), para a parte de PE5.
 
 ---
 
@@ -106,7 +106,7 @@ cenários: T3 sozinho não move o estoque, mas é o que permite calibrar T1 e T2
 
 | Cenário | Pontos | Interfaces | Pressupostos ou fraqueza | Ativos | Risco ([`riscos.md`](riscos.md)) |
 |---|---|---|---|---|-:|
-| **T1** Imobilização e recaptura | PE2, PE3, PE1 | F2, F3, F1, F4 | P2, P4, P5 | Disponibilidade, justiça | 9 |
+| **T1** Imobilização e recaptura | PE2, PE3, PE1 | F2, F3, F1 (F4 em PE2) | P2, P4, P5 | Disponibilidade, justiça | 9 |
 | **T2** Escala por identidades | PE4, PE8, PE5 | F5, F6, F2 | P1, P5; atomicidade | Justiça, integridade das reservas | 6 |
 | **T3** Calibragem pelos limiares | PE7, PE6, PE4 | F7, F1, F2 | P3, P5 | Justiça, confiança | 6 |
 

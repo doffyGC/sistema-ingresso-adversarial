@@ -58,7 +58,7 @@ cada cenário, no formato do enunciado, está em [`ameacas.md`](ameacas.md); os 
 
 | ID | Cenário de ameaça | Ponto de exploração | Pressuposto ou fraqueza | Ativo afetado | Probabilidade | Impacto | Risco |
 |-|-|-|-|-|-:|-:|-:|
-| T1 | **Imobilização e recaptura:** A2 abre reservas em massa sem intenção de pagar e recaptura o estoque quando ele expira | PE2 → PE3 → PE1 (F2, F3, F1) | P2, P4, P5 | Disponibilidade do estoque; justiça da alocação | 3 | 3 | **9** |
+| T1 | **Imobilização e recaptura:** A2 abre reservas em massa sem intenção de pagar e recaptura o estoque quando ele expira | PE2 → PE3 → PE1 (F2, F3, F1; F4 em PE2) | P2, P4, P5 | Disponibilidade do estoque; justiça da alocação | 3 | 3 | **9** |
 | T2 | **Escala por identidades:** A2 multiplica contas para multiplicar o limite de 4 ingressos e as posições na fila, e dispara requisições simultâneas para tirar mais de cada conta | PE4 → PE8, com PE5 (F5, F6, F2) | P1, P5; verificação do limite sem atomicidade | Justiça da alocação; integridade das reservas | 2 | 3 | **6** |
 | T3 | **Calibragem pelos limiares:** A2 usa as mensagens de rejeição para descobrir o limiar de ritmo e passa a operar logo abaixo dele, rotacionando IPs e contas; o limiar fixo bloqueia A1 | PE7 → PE6 → PE4 (F7, F1, F2) | P3, P5 | Justiça da alocação; confiança no processo | 3 | 2 | **6** |
 
