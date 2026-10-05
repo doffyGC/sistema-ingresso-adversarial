@@ -1,4 +1,4 @@
-# Resposta e resiliência — ameaça prioritária
+# Resposta e resiliência: ameaça prioritária
 
 ## Ameaça escolhida
 
@@ -12,9 +12,11 @@ pagar**, que explora o pressuposto **P2** (OWASP OAT-021, *Denial of Inventory*)
 > de circulação e sua concentração em quem monitora em alta frequência** sobre a
 > **disponibilidade do estoque e a justiça da alocação**.
 
-> **Pendente de alinhamento:** o ID do cenário e sua formulação final vêm de
-> [`ameacas.md`](ameacas.md), e a prioridade, da tabela de [`riscos.md`](riscos.md). O
-> texto acima é provisório e deve ser substituído pela versão daquele arquivo.
+Na superfície de ataque ([`superficie-ataque.md`](superficie-ataque.md)), é a cadeia
+**PE2 → PE3 → PE1**: a reserva retém o estoque sem custo (PE2), a expiração o devolve em
+instante previsível ao estoque público (PE3) e a leitura gratuita da disponibilidade
+permite pegá-lo de novo (PE1). Em [`riscos.md`](riscos.md), essa ameaça corresponde ao
+cenário **T1**, classificado com risco 9. A redação acima resume esse cenário.
 
 **Por que é a prioritária.** É a única ameaça que atinge os dois ativos ao mesmo tempo:
 tira ingressos de circulação (disponibilidade) e os devolve a quem tem automação (justiça).
@@ -25,7 +27,7 @@ o que corrói a confiança no processo (seção 3.1, seção 4).
 **Ponto de partida.** A rodada 3 do modelo dinâmico já descreve a primeira reação de A3
 (TTL menor, limite por cluster, pré-autorização, mensagem genérica, cancelamento
 *a posteriori*). Esta seção trata essa reação como base e a redesenha. A rodada 3 encarece
-a imobilização; o redesenho abaixo ataca **a falha do pressuposto em si** — o estoque
+a imobilização; o redesenho abaixo ataca **a falha do pressuposto em si**: o estoque
 liberado volta para quem está monitorando.
 
 ---
@@ -35,14 +37,19 @@ liberado volta para quem está monitorando.
 A resposta combina controles que agem sobre pontos diferentes da imobilização. Nenhum
 deles sozinho resolve; o conjunto muda o incentivo.
 
-| # | Controle | Interface | O que ataca |
-|-:|---|---|---|
-| **R1** | **Devolução pela fila, não pelo estoque público.** Um ingresso cuja reserva expira não volta à disponibilidade exibida (F1): é oferecido ao próximo da fila de espera sorteada (F6) | F3, F6 | A recaptura. Monitorar F1 em alta frequência deixa de render ingressos liberados |
-| **R2** | **Limite de reservas ativas** por identidade e por cluster de contas correlacionadas (por exemplo, uma reserva ativa por conta) | F2 | A escala. Imobilizar *n* ingressos exige *n* identidades ativas ao mesmo tempo |
-| **R3** | **Reservar custa algo:** pré-autorização do cartão no ato da reserva, ou pagamento imediato via Pix como alternativa para quem não tem cartão | F2, F4 | O custo zero de reservar sem pagar (P5) |
-| **R4** | **TTL curto com prorrogação única** quando o pagamento já foi iniciado (por exemplo, 5 min + 5 min se a autenticação bancária está em curso) | F3, F4 | O tempo de imobilização, sem punir quem paga devagar |
-| **R5** | **Perda de prioridade, não bloqueio:** uma conta com reservas expiradas repetidas vai para o fim da fila *naquele evento* | F6 | A repetição do ciclo reserva → expira → reserva, com uma penalidade reversível |
-| **R6** | **Controle do sinal:** mensagem genérica em toda rejeição (F7) e cancelamento *a posteriori* só para clusters confirmados | F7 | O aprendizado de A2 sobre os limiares (lição da rodada 1) |
+| # | Controle | Interface | Ponto | O que ataca |
+|-:|---|---|---|---|
+| **R1** | **Devolução pela fila, não pelo estoque público.** Um ingresso cuja reserva expira não volta à disponibilidade exibida (F1): é oferecido ao próximo da fila de espera sorteada (F6) | F3, F6 | PE3; PE1 deixa de ver a devolução | A recaptura. Monitorar F1 em alta frequência deixa de render ingressos liberados |
+| **R2** | **Limite de reservas ativas** por identidade e por cluster de contas correlacionadas (por exemplo, uma reserva ativa por conta) | F2 | PE2; PE4 pelo cluster | A escala. Imobilizar *n* ingressos exige *n* identidades ativas ao mesmo tempo |
+| **R3** | **Reservar custa algo:** pré-autorização do cartão no ato da reserva, ou pagamento imediato via Pix como alternativa para quem não tem cartão | F2, F4 | PE2 | O custo zero de reservar sem pagar (P5) |
+| **R4** | **TTL curto com prorrogação única** quando o pagamento já foi iniciado (por exemplo, 5 min + 5 min se a autenticação bancária está em curso) | F3, F4 | PE2 | O tempo de imobilização, sem punir quem paga devagar |
+| **R5** | **Perda de prioridade, não bloqueio:** uma conta com reservas expiradas repetidas vai para o fim da fila *naquele evento* | F6 | PE2, pela repetição | A repetição do ciclo reserva → expira → reserva, com uma penalidade reversível |
+| **R6** | **Controle do sinal:** mensagem genérica em toda rejeição (F7) e cancelamento *a posteriori* só para clusters confirmados | F7 | PE7; PE6 deixa de ser calibrável | O aprendizado de A2 sobre os limiares (lição da rodada 1) |
+
+Os três pontos da cadeia da imobilização são atacados: PE2 por R2–R5, PE3 por R1 e PE1 de
+forma indireta, porque deixa de enxergar a devolução. PE5 não é tratado por um controle
+desta tabela, e sim pela arquitetura: a transição `DISPONIVEL → RESERVADO` atômica do
+componente Reserva (seção *Arquitetura para o Trabalho 2*).
 
 ### Observabilidade: o que A3 passa a monitorar
 
@@ -53,7 +60,7 @@ saem da telemetria já descrita na seção 3.1 (seção 6):
 |---|---|
 | Conversão reserva → pagamento, por conta e por cluster | Imobilização (conversão muito abaixo da média) |
 | Fração do estoque em reserva ativa ao longo da abertura | Quanto do estoque está fora de circulação a cada instante |
-| Periodicidade na disponibilidade (picos a cada TTL) | Ciclo de recaptura — deve desaparecer com R1 |
+| Periodicidade na disponibilidade (picos a cada TTL) | Ciclo de recaptura, que deve desaparecer com R1 |
 | Taxa de expiração por meio de pagamento | Se a expiração se concentra em quem não tem cartão, R3 está pesando sobre A1 |
 | Desistência de A1 após rejeição ou expiração, e contestações de cancelamento | Falsos positivos e esgotamento do orçamento de atrito |
 
@@ -75,14 +82,14 @@ assentos, sem custo pelo que expira. Cada controle mexe em um termo:
   funcionar, porque o ingresso liberado vai para a fila e não para quem monitora.
 - **R2** amarra *n* ao número de identidades: cada ingresso imobilizado passa a custar uma
   conta, e é o termo **custo de identidades** que cresce.
-- **R3** transforma reservar em capital retido, e R5 transforma cada expiração em perda de
-  posição — os dois somam ao lado direito.
+- **R3** transforma reservar em capital retido, enquanto R5 transforma cada expiração em
+  perda de posição. Os dois aumentam o lado direito da expressão.
 - **R6** torna as **perdas por cancelamento** imprevisíveis, o que dificulta A2 calcular se
   a estratégia compensa.
 
 O efeito pretendido não é impedir A2 de comprar, e sim tirar a **imobilização** do
-repertório: se reservar sem pagar não rende nada, A2 só ganha comprando de verdade — o que
-o devolve para o limite por identidade e para a disputa sobre P1.
+repertório: se reservar sem pagar não rende nada, A2 só ganha comprando de verdade. Com
+isso, volta a enfrentar o limite por identidade e a disputa sobre P1.
 
 ---
 
@@ -92,7 +99,7 @@ Toda resposta é também um sinal (f2 = f4, seção 3.1). O que A2 consegue apre
 
 | Controle | O que A2 observa | Como reduzir o vazamento |
 |---|---|---|
-| **R1** | Ingressos que expiram não reaparecem na disponibilidade; monitorar F1 não rende mais nada | Nenhum — o vazamento é desejável. A2 aprender que a recaptura morreu é exatamente o objetivo |
+| **R1** | Ingressos que expiram não reaparecem na disponibilidade; monitorar F1 não rende mais nada | Nenhuma medida adicional. Nesse caso, é desejável que A2 perceba que a recaptura deixou de funcionar |
 | **R2** | Tentando uma segunda reserva com a mesma conta, descobre o limite de reservas ativas | Limite anunciado publicamente: é regra, não detecção, e escondê-lo só confundiria A1 |
 | **R3** | O valor e a duração da pré-autorização aparecem na fatura do cartão | Inevitável; o custo é o próprio objetivo |
 | **R4** | Que existe prorrogação, e qual etapa a dispara | Prorrogação condicionada a um evento do provedor de pagamento, que A2 não consegue simular sem iniciar o pagamento |
@@ -101,7 +108,7 @@ Toda resposta é também um sinal (f2 = f4, seção 3.1). O que A2 consegue apre
 
 A distinção que importa: **R1, R2 e R3 são regras anunciadas**, e não há problema em A2
 conhecê-las, porque conhecê-las não ajuda a contorná-las. **R5 e R6 são detecção**, e
-perdem valor quando A2 descobre o limiar — por isso o sinal delas é genérico e atrasado.
+perdem valor quando A2 descobre o limiar. Por isso, o sinal delas é genérico e atrasado.
 É a separação entre o que a rodada 1 errou (expor o limiar de uma detecção) e o que é
 legítimo expor (uma regra igual para todos).
 
@@ -112,23 +119,38 @@ legítimo expor (uma regra igual para todos).
 Sem a recaptura, A2 mantém o objetivo e muda a ação, como no modelo dinâmico:
 
 1. **Pulverizar a imobilização em identidades reais.** Com uma reserva ativa por conta,
-   imobilizar exige muitas contas que não se correlacionem — contas aquecidas ou
-   laranjas, cada uma com cartão próprio. É a adaptação da rodada 4, antecipada: a disputa
+   imobilizar exige muitas contas que não se correlacionem, como contas antigas ou
+   contas de terceiros, cada uma com cartão próprio. É a adaptação da rodada 4,
+   antecipada: a disputa
    migra de **P2** para **P1**.
 2. **Absorver a pré-autorização.** Para A2 com capital, a pré-autorização é dinheiro parado
    por minutos, não um custo. Cartões virtuais descartáveis permitem um cartão por conta.
 3. **Camuflar a conversão.** Pagar uma fração das reservas para manter a conversão do
    cluster acima do limiar de suspeita, revendendo o que pagou.
 4. **Ocupar a fila em vez do estoque.** Se o ingresso liberado vai para a fila, ter muitas
-   posições na fila passa a valer mais. A2 volta a multiplicar contas para ocupar posições
-   — a mesma lógica de "cada conta é um bilhete" da rodada 2.
+   posições na fila passa a valer mais. A2 volta a multiplicar contas para ocupar posições,
+   seguindo a mesma lógica de "cada conta é um bilhete" da rodada 2.
 5. **Trocar imobilização por compra.** Se reter não compensa, A2 compra e revende. A
    ameaça deixa de ser negação de estoque e vira **acumulação** dentro do limite por
-   identidade — que depende de quantas identidades A2 controla.
+   identidade. O resultado depende de quantas identidades A2 controla.
 
 As cinco adaptações convergem para o mesmo lugar: **o custo de identidade**. É ali que a
 corrida continua, e é ali que a próxima resposta de A3 (verificação seletiva, rodada 4)
 precisa atuar.
+
+**A resposta também cria superfície.** Como em
+[`superficie-ataque.md`](superficie-ataque.md) (seção 6), cada controle é uma regra nova
+que A2 pode observar:
+
+| Controle | Regra nova que A2 passa a explorar | Ponto que se fortalece |
+|---|---|---|
+| **R1** | O ingresso expirado vai para a fila, e não para o estoque público | **PE8**: cada posição na fila passa a valer também os ingressos devolvidos (adaptação 4) |
+| **R2** | O critério que agrupa contas em um cluster | **PE4**: A2 estima o critério e cria contas que não se correlacionam (adaptação 1) |
+| **R4** | O evento do pagamento que dispara a prorrogação | **PE2**: A2 inicia pagamentos que não conclui para reter por mais tempo |
+| **R5** | O número de expirações que leva ao fim da fila | **PE8**: distribuir expirações entre contas mantém todas abaixo do limiar |
+
+Por isso o risco da imobilização não cai a zero ([`riscos.md`](riscos.md), seção 4): o que
+sobra passa por PE4 e PE8, que é o cenário T2 (escala por identidades).
 
 ---
 
@@ -158,7 +180,7 @@ R1, R2 e R5 são invisíveis para esse comprador, e R3 se confunde com o própri
 ## 5. Risco que continuaria existindo após a resposta
 
 - **Imobilização distribuída em identidades reais.** A2 com muitas pessoas reais, cada uma
-  com uma reserva e um cartão, continua imobilizando — em escala menor e a custo maior. O
+  com uma reserva e um cartão, continua imobilizando, mas em escala menor e a custo maior. O
   risco migra para P1 e é tratado pela verificação de identidade (rodada 4), não por esta
   resposta.
 - **Atraso de detecção.** R5 e R6 dependem de padrões que só se confirmam ao longo de uma
@@ -175,7 +197,7 @@ A probabilidade da imobilização cai, porque a recaptura deixa de render e cada
 retido passa a custar uma identidade. O impacto de cada ocorrência também cai, porque o
 ingresso liberado volta para a fila e não para o adversário. Na escala de
 [`riscos.md`](riscos.md) (seção 4), o risco passa de **9 (3 × 3, alto)** para
-**4 (2 × 2, médio)** — não chega à faixa baixa porque o que sobra depende de P1, e não da
+**4 (2 × 2, médio)**. O risco não chega à faixa baixa porque o que sobra depende de P1, e não da
 reserva.
 
 ---
@@ -204,16 +226,16 @@ uma nova estratégia de A2:
    para servir.
 
 O critério da seção 3.3 continua valendo: um controle se justifica quando **custa mais para
-A2 do que para A1**. R1 é o caso exemplar — não custa nada a A1 e anula a vantagem inteira
-da recaptura —, assim como a fila sorteada foi na rodada 2.
+A2 do que para A1**. R1 é o principal exemplo, pois não acrescenta custo para A1 e elimina
+a vantagem da recaptura. A fila sorteada cumpriu papel semelhante na rodada 2.
 
 ---
 
 ## Arquitetura para o Trabalho 2
 
 O Trabalho 2 transforma esta resposta em código. Esta seção fixa **quais componentes
-existem, qual controle cada um implementa e qual propriedade cada um precisa garantir** —
-sem escolher linguagem nem *framework*, que são decisão do Trabalho 2.
+existem, qual controle cada um implementa e qual propriedade cada um precisa garantir**.
+A linguagem e o *framework* serão escolhidos no Trabalho 2.
 
 ### Componentes
 
@@ -223,24 +245,24 @@ sem escolher linguagem nem *framework*, que são decisão do Trabalho 2.
 
 | Componente | Interface | Controle | Responsabilidade |
 |---|---|---|---|
-| **Borda da API** | F1, F2, F4, F5, F7 | R6 | Autentica a sessão, aplica *rate limit* e devolve sempre a mesma mensagem genérica em rejeições. Único ponto que fala com o cliente |
+| **Borda da API** | F1, F2, F4, F5, F7 | R6 | Autentica a sessão, limita a quantidade de requisições e devolve sempre a mesma mensagem genérica em rejeições. É o único ponto que se comunica com o cliente |
 | **Disponibilidade** | F1 | R1 | Exibe só ingressos em estado `DISPONIVEL`. Um ingresso ofertado à fila não aparece |
-| **Reserva** | F2 | R2, R3 | Verifica o limite de reservas ativas por conta e por cluster, pede a pré-autorização e faz a transição `DISPONIVEL → RESERVADO` de forma atômica |
+| **Reserva** | F2 | R2, R3 | Verifica o limite de reservas ativas por conta e por cluster, pede a pré-autorização e faz a transição `DISPONIVEL → RESERVADO` de forma atômica, o que fecha PE5 |
 | **Expiração** | F3 | R4 | Expira reservas vencidas; concede uma única prorrogação quando o Pagamento informa que a autenticação está em curso |
 | **Redistribuição** | F3 → F6 | R1 | Oferece o ingresso expirado ao próximo da fila; se ele não aceitar no prazo, ao seguinte; se a fila acabar, devolve ao estoque público |
 | **Fila de espera** | F6 | R5 | Ordem sorteada antes da abertura; rebaixa para o fim as contas marcadas pelo Detector, só no evento corrente |
 | **Pagamento** | F4 | R3, R4 | Pré-autoriza, captura ou libera. No Trabalho 2, é um simulador do provedor |
-| **Identidade** | F5 | — | Cadastro e autenticação; fornece os dados de correlação (dispositivo, cartão) ao Detector |
-| **Telemetria** | — | — | Registra cada transição de estado do ingresso e cada requisição, com conta, cluster e instante |
-| **Detector** | — | R5, R6 | Calcula conversão reserva → pagamento por cluster e periodicidade da disponibilidade; marca contas, sem bloquear |
-| **Moderação e contestação** | — | R6 | Decide cancelamentos *a posteriori* só para clusters confirmados e recebe contestações de A1 |
-| **Painel de indicadores** | — | — | Exibe os indicadores da seção 1, incluindo os que medem o custo da defesa sobre A1 |
+| **Identidade** | F5 | Não se aplica | Cadastro e autenticação; fornece os dados de correlação (dispositivo, cartão) ao Detector |
+| **Telemetria** | Não se aplica | Não se aplica | Registra cada transição de estado do ingresso e cada requisição, com conta, cluster e instante |
+| **Detector** | Não se aplica | R5, R6 | Calcula conversão reserva → pagamento por cluster e periodicidade da disponibilidade; marca contas, sem bloquear |
+| **Moderação e contestação** | Não se aplica | R6 | Decide cancelamentos *a posteriori* só para clusters confirmados e recebe contestações de A1 |
+| **Painel de indicadores** | Não se aplica | Não se aplica | Exibe os indicadores da seção 1, incluindo os que medem o custo da defesa sobre A1 |
 
 ### Ciclo de vida do ingresso
 
-A propriedade 2 da seção 6 — uma reserva corresponde a exatamente um ingresso e expira
-quando deve — vira, no código, uma máquina de estados. Todo ingresso está em **exatamente
-um** estado, e toda transição é atômica:
+A propriedade 2 da seção 6 afirma que uma reserva corresponde a exatamente um ingresso e
+expira quando deve. No código, isso vira uma máquina de estados. Todo ingresso está em
+**exatamente um** estado, e toda transição é atômica:
 
 ```mermaid
 stateDiagram-v2
@@ -257,7 +279,7 @@ stateDiagram-v2
 `OFERTADO_FILA` é o estado que implementa R1: o ingresso sai de `RESERVADO` sem passar por
 `DISPONIVEL`, e por isso nunca fica visível para quem monitora F1. A propriedade 3 da
 seção 6 (todo estoque liberado volta a circular em tempo limitado) exige que a oferta à fila
-também tenha prazo — nenhum ingresso pode ficar parado em `OFERTADO_FILA`.
+também tenha prazo. Nenhum ingresso pode ficar parado em `OFERTADO_FILA`.
 
 ### O que o Trabalho 2 deve conseguir demonstrar
 
@@ -269,3 +291,11 @@ também tenha prazo — nenhum ingresso pode ficar parado em `OFERTADO_FILA`.
    fila, sem ser bloqueada.
 5. O painel mostra, para a mesma simulação, a imobilização e a desistência de compradores
    legítimos simulados.
+
+### Decisões verificáveis
+
+Os invariantes do domínio, registros de decisão, comportamento sob falha e critérios de
+aceite que tornam esta arquitetura implementável estão em
+[`decisoes-arquitetura.md`](decisoes-arquitetura.md). Essa separação mantém este documento
+focado na resposta adversarial e permite que o Trabalho 2 teste a arquitetura sem depender
+de uma linguagem ou *framework* específico.
