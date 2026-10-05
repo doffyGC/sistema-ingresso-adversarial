@@ -9,7 +9,7 @@
 
 **Formato dos diagramas.** Cada figura é entregue em três arquivos: o **arquivo-fonte
 editável** (`.mmd` para Mermaid, board do FigJam para os diagramas de contexto), o `.svg`
-e o `.png`. A exceção é a superfície de ataque (Fig. 4): a fonte editável é um arquivo do Figma e a figura é entregue só em `.png`, exportado dele. Os documentos referenciam o `.png`, porque o SVG gerado pelo Mermaid guarda
+e o `.png`. As exceções são o ciclo adaptativo (Fig. 3) e a superfície de ataque (Fig. 4): a fonte editável de cada uma é um arquivo do Figma, e a figura é entregue só em `.png`, exportado dele. Os documentos referenciam o `.png`, porque o SVG gerado pelo Mermaid guarda
 os rótulos de texto em `foreignObject`, que os navegadores não renderizam quando o SVG é
 embutido como imagem — no GitHub, a figura apareceria sem nenhum texto.
 
@@ -85,8 +85,7 @@ embutido como imagem — no GitHub, a figura apareceria sem nenhum texto.
 
 ### Ferramentas utilizadas nesta seção
 
-- **Mermaid (mermaid-cli)** — diagrama do ciclo adaptativo. Fonte editável em
-  `diagramas/ciclo-adaptativo.mmd`, exportado para `diagramas/ciclo-adaptativo.svg` e `.png`.
+- **Figma**: diagrama do ciclo adaptativo. Fonte editável em `https://www.figma.com/design/q2NAClihvDD5Txs2FhkKdm/Ciclo-Adaptativo?node-id=3-2`, exportado para `diagramas/ciclo-adaptativo.png`.
 
 ### Ferramentas de IA generativa utilizadas nesta seção
 
