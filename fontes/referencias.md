@@ -80,9 +80,17 @@
 
 - **Claude (Anthropic)**: apoio à redação e estruturação dos pontos de exploração, das tabelas de rastreabilidade e do diagrama de superfície de ataque.
 
-## Seção 3.4 — Ameaças e riscos
+## Seção 3.4 — Cenários de ameaça
 
-> *Pendente.*
+- Reutiliza a referência **3** (OWASP OAT): **OAT-021 Denial of Inventory** caracteriza T1 e
+  **OAT-019 Account Creation**, T2.
+- Reutiliza a referência **6** (MITRE CWE-367): caracteriza a parte de T2 que explora a
+  verificação do limite sem atomicidade (PE5).
+
+### Ferramentas de IA generativa utilizadas nesta seção
+
+- **Claude (Anthropic)** — apoio à redação dos cenários no formato do enunciado e da
+  tabela de rastreabilidade.
 
 ## Resiliência e arquitetura do T2
 
