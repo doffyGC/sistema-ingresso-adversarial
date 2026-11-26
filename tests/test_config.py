@@ -16,6 +16,15 @@ def test_parametros_do_arquivo():
     assert parametros.simulacao.rodadas == 5
 
 
+def test_parametros_da_populacao_a1():
+    populacao = carregar_parametros().populacao_a1
+    assert 0 < populacao.fracao_sem_cartao < 1
+    assert 0 < populacao.fracao_ansiosa < 1
+    assert populacao.cadencia_ansiosa < populacao.cadencia_normal
+    # Parte de A1 demora mais que o TTL inicial para pagar: é o atrito do "prazo curto".
+    assert populacao.pagar_min < carregar_parametros().politica_inicial.ttl < populacao.pagar_max
+
+
 def test_politica_inicial_e_o_estado_inicial_do_3_3():
     inicial = carregar_parametros().politica_inicial
     assert inicial.limite_por_conta == 4

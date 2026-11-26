@@ -14,6 +14,24 @@ premium = 20              # os 20 primeiros ingressos são premium
 preco_premium = 500.0
 preco_pista = 200.0
 
+# População A1 (#9): compradores legítimos, sem estratégia, sorteados pela semente.
+[populacao_a1]
+fracao_sem_cartao = 0.15        # parte sem cartão (relevante para R3)
+fracao_ansiosa = 0.2            # parte "ansiosa", com cadência alta (falso positivo, P3)
+cadencia_normal = 5             # ticks entre duas ações de um comprador comum
+cadencia_ansiosa = 1            # o ansioso age a cada tick
+chegada_max = 120               # cada um chega entre o tick 0 e o 120
+pagar_min = 30                  # tempo para pagar, sorteado nesta faixa;
+pagar_max = 900                 # quem passa do TTL (600) perde a reserva: "prazo curto"
+ingressos_min = 1
+ingressos_max = 2
+preferencia_premium = 0.5
+tentativas_antes_da_fila = 3    # depois de 3 "indisponível", vai para a fila (ou desiste)
+aceita_oferta = 0.85
+desistencia_fila = 0.3          # desiste em vez de entrar na fila
+desistencia_prazo = 0.5         # desiste quando a reserva expira antes de pagar
+desistencia_verificacao = 0.7   # desiste quando a pré-autorização (R3) recusa
+
 # Política com que A3 começa (D5, estado inicial do 3.3):
 # 4 ingressos por conta, TTL de 10 minutos e nenhum controle ligado.
 # Os outros números só valem quando A3 ligar o controle.
