@@ -1,0 +1,52 @@
+# Parâmetros iniciais do protótipo (D4). Os valores são ilustrativos, como no T1.
+# Tempo em ticks: 1 tick = 1 segundo simulado.
+
+[simulacao]
+semente = 42
+rodadas = 5
+duracao_abertura = 1800   # 30 minutos de venda por rodada
+compradores_a1 = 60
+contas_a2_max = 10
+
+[lote]
+quantidade = 100
+premium = 20              # os 20 primeiros ingressos são premium
+preco_premium = 500.0
+preco_pista = 200.0
+
+# Política com que A3 começa (D5, estado inicial do 3.3):
+# 4 ingressos por conta, TTL de 10 minutos e nenhum controle ligado.
+# Os outros números só valem quando A3 ligar o controle.
+[politica_inicial]
+limite_por_conta = 4
+ttl = 600
+
+[politica_inicial.limite_requisicoes]
+ativo = false
+maximo = 30
+janela = 60
+por = "origem"
+
+[politica_inicial.r1]
+ativo = false
+prazo_oferta = 120
+
+[politica_inicial.r2]
+ativo = false
+max_por_conta = 1
+max_por_cluster = 1
+
+[politica_inicial.r3]
+ativo = false
+custo = 10.0
+
+[politica_inicial.r4]
+ativo = false
+prorrogacao = 300
+
+[politica_inicial.r5]
+ativo = false
+limiar_expiracoes = 2
+
+[politica_inicial.r6]
+ativo = false

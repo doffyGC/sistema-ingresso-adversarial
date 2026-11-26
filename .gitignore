@@ -1,3 +1,18 @@
 Apresentação de Trabalhos.md
 
 CLAUDE.md
+
+# Ambiente e segredos
+.env
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Saídas da simulação
+logs/
