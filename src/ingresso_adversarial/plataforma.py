@@ -438,7 +438,7 @@ class Plataforma:
     # ------------------------------------------------------------------
 
     def verificar_invariantes(self) -> list[str]:
-        """Devolve a lista de problemas encontrados. Lista vazia = tudo certo."""
+        """Confere INV1 a INV6. Devolve a lista de problemas encontrados; lista vazia = tudo certo."""
         problemas = []
         ativas = self.reservas_ativas()
 
@@ -467,6 +467,14 @@ class Plataforma:
             for cluster in {c.cluster for c in self.contas.values()}:
                 if self.ativas_do_cluster(cluster) > p.r2.max_por_cluster:
                     problemas.append(f"INV3: cluster {cluster} passou do limite de reservas ativas")
+
+        # INV4: com a fila, um ingresso só volta ao público quando não há ninguém elegível nela.
+        for evento in self.log.do_tipo("volta_ao_publico"):
+            if evento.dados["pela_fila"] and evento.dados["elegiveis_na_fila"] > 0:
+                problemas.append(
+                    f"INV4: ingresso {evento.dados['ingresso']} voltou ao público no tick {evento.tick} "
+                    f"com {evento.dados['elegiveis_na_fila']} conta(s) elegível(is) na fila"
+                )
 
         # INV5: nenhuma oferta fica parada depois do prazo.
         for ingresso_id, oferta in self.ofertas.items():
