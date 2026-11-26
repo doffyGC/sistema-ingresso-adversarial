@@ -20,7 +20,7 @@ TRANSICOES_PERMITIDAS = {
     (RESERVADO, OFERTADO_FILA),  # expirou com R1 ligado: vai para a fila
     (RESERVADO, DISPONIVEL),  # expirou com R1 desligado (ou fila sem ninguém)
     (OFERTADO_FILA, RESERVADO),  # quem estava na fila aceitou
-    (OFERTADO_FILA, OFERTADO_FILA),  # recusou ou não respondeu: passa ao próximo
+    (OFERTADO_FILA, OFERTADO_FILA),  # recusou, não respondeu ou esperava a vez: passa ao próximo
     (OFERTADO_FILA, DISPONIVEL),  # a fila acabou
     (VENDIDO, OFERTADO_FILA),  # cancelamento a posteriori (A3, #11)
     (VENDIDO, DISPONIVEL),  # cancelamento com a fila vazia
@@ -62,8 +62,7 @@ class Estoque:
             raise TransicaoInvalida("RESERVADO precisa da reserva")
         if novo == VENDIDO and dono is None:
             raise TransicaoInvalida("VENDIDO precisa do dono")
-        if novo == OFERTADO_FILA and ofertado_para is None:
-            raise TransicaoInvalida("OFERTADO_FILA precisa de quem recebe a oferta")
+        # OFERTADO_FILA sem ofertado_para = o ingresso espera a vez na fila (DA1).
 
         # Só chega aqui se tudo estiver certo: agora muda de uma vez.
         ingresso.estado = novo

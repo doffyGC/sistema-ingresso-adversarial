@@ -37,7 +37,7 @@ class Ingresso(BaseModel):
     estado: EstadoIngresso = EstadoIngresso.DISPONIVEL
     reserva_id: str | None = None  # preenchido só quando RESERVADO
     dono: str | None = None  # preenchido só quando VENDIDO
-    ofertado_para: str | None = None  # preenchido só quando OFERTADO_FILA
+    ofertado_para: str | None = None  # quem recebeu a oferta; None em OFERTADO_FILA = esperando a vez
 
 
 class StatusReserva(StrEnum):
