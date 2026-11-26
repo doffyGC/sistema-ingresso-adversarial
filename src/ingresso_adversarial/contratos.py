@@ -236,6 +236,8 @@ class Indicadores(BaseModel):
 
     ingressos_a1: int = 0
     ingressos_a2: int = 0
+    premium_a1: int = 0  # dos ingressos acima, quantos são do setor premium
+    premium_a2: int = 0
     estoque_retido_medio: float = 0.0
     conversao_a1: float = 0.0
     conversao_a2: float = 0.0
