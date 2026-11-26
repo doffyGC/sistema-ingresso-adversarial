@@ -1,0 +1,71 @@
+"""Execução de uma abertura de vendas (#9)."""
+
+import pytest
+from bot_falso import intensivo, regular
+from conftest import politica
+
+from ingresso_adversarial import carregar_parametros
+from ingresso_adversarial.contratos import RespostaBorda
+from ingresso_adversarial.simulacao import BordaObservada, executar_abertura
+
+POLITICAS = {
+    "estado inicial": politica(),
+    "R1 e R2": politica(r1={"ativo": True}, r2={"ativo": True}),
+    "todos ligados": politica(
+        limite_requisicoes={"ativo": True},
+        r1={"ativo": True},
+        r2={"ativo": True},
+        r3={"ativo": True},
+        r4={"ativo": True},
+        r5={"ativo": True},
+        r6={"ativo": True},
+    ),
+}
+
+
+@pytest.mark.parametrize("nome", POLITICAS)
+def test_invariantes_valem_ao_fim_da_rodada(nome):
+    parametros = carregar_parametros()
+    abertura = executar_abertura(1, POLITICAS[nome], intensivo(), parametros, 42)
+    assert abertura.plataforma.verificar_invariantes() == []
+    assert abertura.telemetria.vendidos <= parametros.lote.quantidade
+    assert len(abertura.telemetria.retido) == parametros.simulacao.duracao_abertura
+
+
+def test_participante_so_recebe_as_operacoes_do_comprador():
+    recebidas = []
+
+    class Espiao:
+        def cadastrar(self, borda, identidades):
+            recebidas.append(borda)
+            borda.cadastrar(identidades.nova_conta("A2"), identidades.novo_cluster())
+
+        def agir(self, tick, borda):
+            recebidas.append(borda)
+
+    executar_abertura(1, politica(), Espiao(), carregar_parametros(), 42)
+    assert all(isinstance(b, BordaObservada) for b in recebidas)
+    with pytest.raises(AttributeError):
+        recebidas[0].plataforma  # não alcança o estoque por trás da Borda
+    with pytest.raises(AttributeError):
+        recebidas[0].traduzir
+
+
+def test_pedidos_do_bot_guardam_so_respostas_da_borda():
+    abertura = executar_abertura(1, politica(), regular(), carregar_parametros(), 42)
+    assert abertura.pedidos_a2
+    assert all(isinstance(p.resposta, RespostaBorda) for p in abertura.pedidos_a2)
+
+
+def test_a1_e_a2_se_intercalam_no_mesmo_tick():
+    abertura = executar_abertura(1, politica(), intensivo(), carregar_parametros(), 42)
+    contas_a2 = abertura.identidades.contas_de("A2")
+    quem_no_tick_0 = [
+        e.quem in contas_a2
+        for e in abertura.plataforma.log.do_tipo("requisicao")
+        if e.tick == 0 and e.dados["operacao"] != "cadastrar"
+    ]
+    # Há requisições dos dois lados, e a ordem não é "todos de um lado, depois o outro".
+    trocas = sum(1 for a, b in zip(quem_no_tick_0, quem_no_tick_0[1:]) if a != b)
+    assert True in quem_no_tick_0 and False in quem_no_tick_0
+    assert trocas >= 1
