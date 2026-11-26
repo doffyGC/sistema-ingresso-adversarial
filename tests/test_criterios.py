@@ -50,6 +50,56 @@ def test_criterio_3_expirado_nao_reaparece_enquanto_ha_fila():
     assert sorted(e.dados["conta"] for e in plataforma.log.do_tipo("oferta")) == ["f1", "f2", "f3"]
 
 
+def expirar_em_massa(contas_na_fila, reservas=3):
+    """A2 reserva varios ingressos e deixa todos expirarem no mesmo tick."""
+    plataforma, borda = ambiente(politica(ttl=5, r1={"ativo": True, "prazo_oferta": 4}))
+    cadastrar(borda, "a2", "monitor", *contas_na_fila)
+    for conta in contas_na_fila:
+        borda.entrar_fila(conta)
+    ingressos = list(range(1, reservas + 1))
+    for ingresso in ingressos:
+        assert borda.reservar("a2", ingresso).ok
+    plataforma.avancar(5)  # todas expiram juntas
+    return plataforma, borda, ingressos
+
+
+def visiveis(borda, ingressos):
+    lista = borda.ver_disponiveis("monitor").dados["ingressos"]
+    return [i["id"] for i in lista if i["id"] in ingressos]
+
+
+def test_criterio_3_expiracoes_simultaneas_esperam_a_vez_na_fila():
+    """Tres reservas expiram juntas e so ha uma conta na fila: nenhuma volta ao publico."""
+    plataforma, borda, ingressos = expirar_em_massa(["f1"])
+
+    estados = [plataforma.estoque.estado(i) for i in ingressos]
+    assert estados == [EstadoIngresso.OFERTADO_FILA] * 3
+    assert visiveis(borda, ingressos) == []
+    # A2 nao consegue recapturar enquanto f1 esta na fila.
+    assert all(not borda.reservar("a2", i).ok for i in ingressos)
+
+    oferta = borda.consultar_fila("f1").dados["oferta"]
+    assert borda.responder_oferta("f1", oferta["ingresso_id"], aceitar=True).ok
+    # f1 saiu da fila: agora a fila acabou e os outros dois voltam ao publico.
+    assert sorted(visiveis(borda, ingressos)) == sorted(set(ingressos) - {oferta["ingresso_id"]})
+    assert plataforma.verificar_invariantes() == []
+
+
+def test_criterio_3_expiracoes_simultaneas_com_fila_que_nao_responde():
+    """Duas contas na fila deixam as ofertas vencerem: os ingressos so voltam no fim da fila."""
+    plataforma, borda, ingressos = expirar_em_massa(["f1", "f2"])
+    problemas = []
+    for _ in range(20):
+        if len(plataforma.fila) > 0:
+            assert visiveis(borda, ingressos) == []
+        problemas.extend(plataforma.verificar_invariantes())
+        plataforma.avancar()
+
+    assert problemas == []
+    assert len(plataforma.fila) == 0
+    assert sorted(visiveis(borda, ingressos)) == ingressos
+
+
 def test_criterio_3_quem_aceita_a_oferta_fica_com_o_ingresso():
     plataforma, borda = ambiente(politica(ttl=5, r1={"ativo": True}))
     cadastrar(borda, "a2", "a1")

@@ -19,6 +19,8 @@ POLITICAS = {
     ),
     "R1 e R2": politica(ttl=15, r1={"ativo": True, "prazo_oferta": 4}, r2={"ativo": True, "max_por_cluster": 2}),
     "R4 e R5": politica(ttl=10, r4={"ativo": True, "prorrogacao": 5}, r5={"ativo": True, "limiar_expiracoes": 1}),
+    # TTL curto e muitas reservas por conta: varias expiram no mesmo tick (criterio 3).
+    "expiracao em massa": politica(ttl=4, limite_por_conta=8, r1={"ativo": True, "prazo_oferta": 3}),
 }
 
 
