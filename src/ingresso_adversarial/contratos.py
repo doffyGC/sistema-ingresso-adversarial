@@ -221,6 +221,7 @@ class ObservacaoA3(BaseModel):
     reservas_expiradas: int = 0
     conversao: float = 0.0  # reservas pagas / reservas criadas
     conversao_por_cluster: dict[str, float] = {}
+    conversao_por_conta: dict[str, float] = {}  # só contas que reservaram algo (ids opacos)
     estoque_retido: list[float] = []  # fração do lote RESERVADO ao longo da rodada
     periodicidade: int | None = None  # picos de devolução a cada N ticks, se houver
     vendidos: int = 0

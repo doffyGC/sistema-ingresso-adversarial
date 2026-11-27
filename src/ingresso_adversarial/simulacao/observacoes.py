@@ -87,6 +87,7 @@ def observacao_a3(numero: int, politica: PoliticaA3, telemetria: Telemetria) -> 
         reservas_expiradas=telemetria.reservas_expiradas,
         conversao=round(telemetria.reservas_pagas / criadas, 4) if criadas else 0.0,
         conversao_por_cluster={c: round(v, 4) for c, v in telemetria.conversao_por_cluster().items()},
+        conversao_por_conta={c: round(v, 4) for c, v in telemetria.conversao_por_conta().items()},
         estoque_retido=telemetria.retido_por_minuto(),
         periodicidade=telemetria.periodicidade(),
         vendidos=telemetria.vendidos,

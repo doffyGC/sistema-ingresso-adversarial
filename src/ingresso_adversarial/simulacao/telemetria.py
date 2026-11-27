@@ -103,6 +103,9 @@ class Telemetria:
     def conversao_por_cluster(self) -> dict[str, float]:
         return {c: self.pagas_por_cluster[c] / n for c, n in sorted(self.reservas_por_cluster.items())}
 
+    def conversao_por_conta(self) -> dict[str, float]:
+        return {c: self.pagas_por_conta[c] / n for c, n in sorted(self.reservas_por_conta.items())}
+
     def retido_por_minuto(self) -> list[float]:
         """Série resumida (um ponto a cada 60 ticks) para caber na observação de A3."""
         return [round(max(self.retido[i : i + 60]), 3) for i in range(0, len(self.retido), 60)]

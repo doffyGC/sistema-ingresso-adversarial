@@ -99,7 +99,7 @@ Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comp
 | | `ObservacaoA2` | `ObservacaoA3` |
 |---|---|---|
 | Fonte | Só as respostas da Borda ao bot | Telemetria da plataforma |
-| Vê | Respostas por categoria, limiares expostos (o `detalhe` de um 429, por exemplo), reservas obtidas, expiradas, recapturas, compras, ofertas da fila, custo de pré-autorização | Requisições, rejeições pelo **motivo exato**, conversão geral e por cluster, estoque retido por minuto, periodicidade das devoluções, vendidos, contas rebaixadas, desistências |
+| Vê | Respostas por categoria, limiares expostos (o `detalhe` de um 429, por exemplo), reservas obtidas, expiradas, recapturas, compras, ofertas da fila, custo de pré-autorização | Requisições, rejeições pelo **motivo exato**, conversão geral, por conta e por cluster, estoque retido por minuto, periodicidade das devoluções, vendidos, contas rebaixadas, desistências |
 | Não vê | O estoque, outras contas, clusters, motivo interno de rejeição | Quem é A1 e quem é A2 (os ids são opacos) |
 
 **Com R6 ligado**, A1 também recebe só a resposta genérica: `SEM_CARTAO` e o 429 chegam

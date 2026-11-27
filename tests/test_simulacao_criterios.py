@@ -98,3 +98,15 @@ def test_sem_recaptura_nao_ha_periodicidade(semente):
     """A1 e um A2 que compra de verdade não deixam um ciclo de devoluções."""
     assert rodada(intensivo(), semente=semente, pol=politica(ttl=120)).observacao_a3.periodicidade is None
     assert rodada(regular(), semente=semente, pol=politica(ttl=120)).observacao_a3.periodicidade is None
+
+
+def test_observacao_de_a3_traz_conversao_por_conta_e_por_cluster():
+    """A recaptura aparece como contas e cluster com conversão zero, sem dizer que são de A2."""
+    bot = BotRecaptura()
+    abertura = executar_abertura(1, politica(), bot, PARAMETROS, 42)
+    obs = montar_resultado(abertura, politica(), bot.estrategia).observacao_a3
+    contas_a2 = abertura.identidades.contas_de("A2")
+    assert contas_a2 <= set(obs.conversao_por_conta)
+    assert all(obs.conversao_por_conta[c] == 0.0 for c in contas_a2)
+    assert any(v > 0 for c, v in obs.conversao_por_conta.items() if c not in contas_a2)
+    assert set(obs.conversao_por_cluster) <= {c.cluster for c in abertura.plataforma.contas.values()}
