@@ -59,6 +59,14 @@ O bot recebe uma `BordaObservada`, não a Borda. Ela só expõe as operações d
 cada pedido com a resposta para montar a `ObservacaoA2`. Em `tests/bot_falso.py` há um bot
 mínimo (INTENSIVO e REGULAR), usado só nos testes.
 
+O ambiente impõe as regras de identidade do D4, e não depende do bot para isso:
+
+- `IdentidadesA2.nova_conta()` emite no máximo `contas_a2_max` contas (10). Pedir mais levanta
+  `LimiteDeContasA2`; o guardrail de A2 (#10) deve validar `num_contas` antes de executar.
+- A `BordaObservada` só aceita requisições com contas emitidas para o próprio participante.
+  Um id inventado pelo bot, ou uma conta de A1, levanta `ContaNaoEmitida`. Assim toda compra
+  de A2 entra em `ingressos_a2`, e a `ObservacaoA3` só tem ids opacos.
+
 ## População A1
 
 Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comprador:

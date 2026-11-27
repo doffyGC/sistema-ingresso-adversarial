@@ -48,11 +48,20 @@ class Pedido:
     resposta: RespostaBorda
 
 
-class BordaObservada:
-    """Expõe só as operações do comprador e anota cada pedido e resposta."""
+class ContaNaoEmitida(Exception):
+    """O participante tentou agir com uma conta que o ambiente não emitiu para ele."""
 
-    def __init__(self, borda: Borda, anotar: bool = True):
+
+class BordaObservada:
+    """Expõe só as operações do comprador e anota cada pedido e resposta.
+
+    Só aceita requisições feitas com as contas do próprio participante (``contas``). Assim o
+    bot não cadastra ids próprios nem age em nome de contas de A1.
+    """
+
+    def __init__(self, borda: Borda, contas: set[str], anotar: bool = True):
         self._borda = borda
+        self._contas = contas  # conjunto vivo: cresce à medida que o ambiente emite contas
         self._anotar = anotar
         self.pedidos: list[Pedido] = []
 
@@ -62,6 +71,9 @@ class BordaObservada:
         operacao = getattr(self._borda, nome)
 
         def chamar(*args, **kwargs):
+            conta = args[0] if args else kwargs.get("conta")
+            if conta not in self._contas:
+                raise ContaNaoEmitida(f"a conta '{conta}' não foi emitida para este participante")
             resposta = operacao(*args, **kwargs)
             if not self._anotar:
                 return resposta
@@ -123,15 +135,16 @@ def executar_abertura(
     identidades = Identidades(semente)
     telemetria = Telemetria()
 
-    borda_a1 = BordaObservada(borda, anotar=False)  # A1 não precisa de observação
     populacao = criar_populacao(parametros, semente, identidades)
+    borda_a1 = BordaObservada(borda, identidades.contas_de("A1"), anotar=False)  # A1 não precisa de observação
     for comprador in populacao:
         comprador.cadastrar(borda_a1)
 
-    borda_a2 = BordaObservada(borda)
+    identidades_a2 = IdentidadesA2(identidades, parametros.simulacao.contas_a2_max)
+    borda_a2 = BordaObservada(borda, identidades_a2.emitidas)
     participantes: list[tuple[Any, BordaObservada]] = [(_AgenteA1(c), borda_a1) for c in populacao]
     if bot_a2 is not None:
-        bot_a2.cadastrar(borda_a2, IdentidadesA2(identidades))
+        bot_a2.cadastrar(borda_a2, identidades_a2)
         participantes.append((bot_a2, borda_a2))
 
     ordem = random.Random(f"ordem:{semente}")

@@ -6,7 +6,13 @@ from conftest import politica
 
 from ingresso_adversarial import carregar_parametros
 from ingresso_adversarial.contratos import RespostaBorda
-from ingresso_adversarial.simulacao import BordaObservada, IdentidadesA2, executar_abertura
+from ingresso_adversarial.simulacao import (
+    BordaObservada,
+    ContaNaoEmitida,
+    IdentidadesA2,
+    LimiteDeContasA2,
+    executar_abertura,
+)
 
 POLITICAS = {
     "estado inicial": politica(),
@@ -74,3 +80,37 @@ def test_a1_e_a2_se_intercalam_no_mesmo_tick():
     trocas = sum(1 for a, b in zip(quem_no_tick_0, quem_no_tick_0[1:]) if a != b)
     assert True in quem_no_tick_0 and False in quem_no_tick_0
     assert trocas >= 1
+
+
+def test_a2_nao_passa_do_limite_de_contas():
+    """D4: A2 tem no máximo contas_a2_max contas; o ambiente impõe, não o bot."""
+    parametros = carregar_parametros()
+    maximo = parametros.simulacao.contas_a2_max
+    with pytest.raises(LimiteDeContasA2):
+        executar_abertura(1, politica(), intensivo(num_contas=maximo + 1), parametros, 42)
+    abertura = executar_abertura(1, politica(), intensivo(num_contas=maximo), parametros, 42)
+    assert len(abertura.identidades.contas_de("A2")) == maximo
+
+
+class BotComIdsProprios:
+    def __init__(self, conta):
+        self.conta = conta
+
+    def cadastrar(self, borda, identidades):
+        borda.cadastrar(self.conta, identidades.novo_cluster())
+
+    def agir(self, tick, borda):
+        pass
+
+
+def test_bot_so_age_com_contas_emitidas_pelo_ambiente():
+    """Um id inventado pelo bot não entraria em ingressos_a2 e vazaria na ObservacaoA3."""
+    with pytest.raises(ContaNaoEmitida):
+        executar_abertura(1, politica(), BotComIdsProprios("bot0"), carregar_parametros(), 42)
+
+
+def test_bot_nao_age_em_nome_de_conta_de_a1():
+    parametros = carregar_parametros()
+    conta_de_a1 = next(iter(executar_abertura(1, politica(), None, parametros, 42).identidades.contas_de("A1")))
+    with pytest.raises(ContaNaoEmitida):
+        executar_abertura(1, politica(), BotComIdsProprios(conta_de_a1), parametros, 42)

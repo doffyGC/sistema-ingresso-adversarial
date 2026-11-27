@@ -33,18 +33,29 @@ class Identidades:
         return {conta for conta, quem in self.dono.items() if quem == dono}
 
 
+class LimiteDeContasA2(Exception):
+    """A2 pediu mais contas do que a rodada permite (``contas_a2_max``, D4)."""
+
+
 class IdentidadesA2:
     """O que o bot de A2 recebe: só criar contas e clusters.
 
     Não dá acesso ao dono das outras contas, então o bot não descobre quem é A1.
-    Toda conta criada por aqui fica registrada como de A2.
+    Toda conta criada por aqui fica registrada como de A2, e o ambiente só aceita
+    requisições do bot com as contas emitidas aqui, até ``maximo`` contas.
     """
 
-    def __init__(self, identidades: Identidades):
+    def __init__(self, identidades: Identidades, maximo: int):
         self._identidades = identidades
+        self.maximo = maximo
+        self.emitidas: set[str] = set()
 
     def nova_conta(self) -> str:
-        return self._identidades.nova_conta("A2")
+        if len(self.emitidas) >= self.maximo:
+            raise LimiteDeContasA2(f"A2 pode ter no máximo {self.maximo} contas")
+        conta = self._identidades.nova_conta("A2")
+        self.emitidas.add(conta)
+        return conta
 
     def novo_cluster(self) -> str:
         return self._identidades.novo_cluster()
