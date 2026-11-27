@@ -64,7 +64,7 @@ class CompradorA1:
         self.falhas = 0
         self.reserva: ReservaEmPagamento | None = None
         self.comprados = 0
-        self.desistiu: str | None = None  # "fila", "prazo" ou "verificacao"
+        self.desistiu: str | None = None  # "fila", "oferta", "prazo" ou "verificacao"
         self.proxima_acao = chegada
         self.pedidos = 0  # numera as chaves de idempotência
 
@@ -146,7 +146,7 @@ class CompradorA1:
                 self.tratar_rejeicao(aceite, borda)
         else:
             borda.responder_oferta(self.conta, oferta["ingresso_id"], False, chave=self.chave("oferta"))
-            self.desistir("fila")
+            self.desistir("oferta")  # esperou na fila, mas recusou quando chegou a vez
         return True
 
     def comecar_pagamento(self, tick: int, resposta: RespostaBorda) -> None:

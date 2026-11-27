@@ -81,7 +81,7 @@ Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comp
 | **Sem cartão** (15%) | Com R3 ligado, a pré-autorização recusa e ele tende a desistir (`verificacao`) |
 | **Ansioso** (20%) | Age a cada tick e confere a reserva enquanto paga. Com limite de requisições, leva 429: é o falso positivo de P3 |
 | **Prazo curto** | O tempo para pagar segue uma distribuição com cauda que passa do TTL. Quem perde a reserva pode desistir (`prazo`) |
-| **Atrito da fila** | Parte desiste em vez de entrar na fila (`fila`), ou recusa a oferta |
+| **Atrito da fila** | Parte desiste em vez de entrar na fila (`fila`); quem entra pode recusar a oferta quando chega a vez (`oferta`) |
 
 ## O que cada lado observa
 

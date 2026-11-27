@@ -1,7 +1,7 @@
 """População A1 (#9): variação controlada pela semente."""
 
 import pytest
-from bot_falso import regular
+from bot_falso import intensivo, regular
 from conftest import politica
 
 from ingresso_adversarial import carregar_parametros
@@ -60,6 +60,19 @@ def test_ansioso_leva_429_quando_a3_liga_o_limite_de_requisicoes():
     }
     ansiosos = {c.conta for c in abertura.populacao if c.ansioso}
     assert barrados and barrados <= ansiosos
+
+
+def test_recusar_a_oferta_tem_motivo_proprio():
+    """Quem recusa a oferta da fila não se confunde com quem desistiu de entrar nela."""
+    parametros = carregar_parametros()
+    parametros.populacao_a1.aceita_oferta = 0.0  # todo mundo recusa
+    abertura = executar_abertura(1, politica(r1={"ativo": True}), intensivo(), parametros, 42)
+    recusaram = {e.quem for e in abertura.plataforma.log.do_tipo("oferta_respondida") if not e.dados["aceitou"]}
+    motivos = {c.conta: c.desistiu for c in abertura.populacao}
+    assert recusaram
+    recusaram_a1 = recusaram & set(motivos)
+    assert recusaram_a1 and all(motivos[conta] == "oferta" for conta in recusaram_a1)
+    assert any(motivo == "fila" for motivo in motivos.values())  # o outro atrito continua separado
 
 
 def test_sem_cartao_desiste_com_a_pre_autorizacao():
