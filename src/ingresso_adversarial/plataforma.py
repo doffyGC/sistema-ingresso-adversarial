@@ -352,10 +352,13 @@ class Plataforma:
         )
 
     def atender_aguardando(self) -> None:
-        """Tenta de novo os ingressos que esperavam a vez na fila."""
+        """Tenta de novo os ingressos que esperavam a vez na fila.
+
+        Se A3 desligou o R1 enquanto eles esperavam, voltam ao público (a fila deixou de valer).
+        """
         pendentes, self.aguardando_fila = self.aguardando_fila, []
         for ingresso_id in pendentes:
-            self.redistribuir(ingresso_id, usar_fila=True)
+            self.redistribuir(ingresso_id, usar_fila=self.politica.r1.ativo)
 
     def responder_oferta(self, conta_id: str, ingresso_id: int, aceitar: bool) -> Resultado:
         conta = self.contas.get(conta_id)

@@ -100,6 +100,18 @@ def test_criterio_3_expiracoes_simultaneas_com_fila_que_nao_responde():
     assert sorted(visiveis(borda, ingressos)) == ingressos
 
 
+def test_desligar_r1_devolve_ao_publico_os_ingressos_em_espera():
+    plataforma, borda, ingressos = expirar_em_massa(["f1"])
+    ofertado = borda.consultar_fila("f1").dados["oferta"]["ingresso_id"]
+    em_espera = sorted(set(ingressos) - {ofertado})
+
+    plataforma.aplicar_politica(politica(ttl=5, r1={"ativo": False}))
+    assert sorted(visiveis(borda, ingressos)) == em_espera
+    # A oferta que já estava aberta continua valendo até o prazo dela.
+    assert plataforma.estoque.estado(ofertado) == EstadoIngresso.OFERTADO_FILA
+    assert plataforma.verificar_invariantes() == []
+
+
 def test_criterio_3_quem_aceita_a_oferta_fica_com_o_ingresso():
     plataforma, borda = ambiente(politica(ttl=5, r1={"ativo": True}))
     cadastrar(borda, "a2", "a1")
