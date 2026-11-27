@@ -31,3 +31,20 @@ class Identidades:
 
     def contas_de(self, dono: str) -> set[str]:
         return {conta for conta, quem in self.dono.items() if quem == dono}
+
+
+class IdentidadesA2:
+    """O que o bot de A2 recebe: só criar contas e clusters.
+
+    Não dá acesso ao dono das outras contas, então o bot não descobre quem é A1.
+    Toda conta criada por aqui fica registrada como de A2.
+    """
+
+    def __init__(self, identidades: Identidades):
+        self._identidades = identidades
+
+    def nova_conta(self) -> str:
+        return self._identidades.nova_conta("A2")
+
+    def novo_cluster(self) -> str:
+        return self._identidades.novo_cluster()

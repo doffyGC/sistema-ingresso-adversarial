@@ -28,7 +28,7 @@ class BotFalso:
         e = self.estrategia
         clusters = [identidades.novo_cluster() for _ in range(e.clusters_distintos)]
         for n in range(e.num_contas):
-            conta = identidades.nova_conta("A2")
+            conta = identidades.nova_conta()
             borda.cadastrar(conta, clusters[n % len(clusters)])
             self.contas.append(conta)
 

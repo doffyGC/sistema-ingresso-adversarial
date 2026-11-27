@@ -37,7 +37,7 @@ Para guardar o log JSONL da rodada, passe um `Log` em `log=` e salve depois com
 
 1. Cria a Plataforma e a Borda com a política de A3 da rodada.
 2. Sorteia a população A1 e cadastra as contas. O bot de A2 cadastra as suas pedindo ids a
-   `Identidades`.
+   `IdentidadesA2`, que só cria contas e clusters e não revela o dono das outras contas.
 3. A cada tick, os participantes agem numa **ordem sorteada**, então requisições de A1 e de
    A2 se intercalam. Depois a Plataforma expira reservas e ofertas e a telemetria tira uma
    amostra.
@@ -50,7 +50,7 @@ A rodada aceita qualquer objeto com o formato de `Participante`:
 
 ```python
 class Participante(Protocol):
-    def cadastrar(self, borda, identidades): ...   # identidades.nova_conta("A2"), novo_cluster()
+    def cadastrar(self, borda, identidades): ...   # identidades.nova_conta(), novo_cluster()
     def agir(self, tick, borda): ...               # as requisições deste tick
 ```
 

@@ -19,7 +19,7 @@ from ..config import Parametros
 from ..contratos import PoliticaA3, RespostaBorda
 from ..eventos import Log
 from ..plataforma import Plataforma
-from .identidades import Identidades
+from .identidades import Identidades, IdentidadesA2
 from .populacao import CompradorA1, criar_populacao
 from .telemetria import Telemetria
 
@@ -75,8 +75,8 @@ class BordaObservada:
 class Participante(Protocol):
     """O que a rodada espera do bot de A2 (#10). A população A1 segue o mesmo formato."""
 
-    def cadastrar(self, borda: BordaObservada, identidades: Identidades) -> None:
-        """Cria as contas pedindo ids a ``identidades.nova_conta("A2")`` e clusters a
+    def cadastrar(self, borda: BordaObservada, identidades: IdentidadesA2) -> None:
+        """Cria as contas pedindo ids a ``identidades.nova_conta()`` e clusters a
         ``identidades.novo_cluster()``, e cadastra cada uma pela Borda."""
 
     def agir(self, tick: int, borda: BordaObservada) -> None:
@@ -131,7 +131,7 @@ def executar_abertura(
     borda_a2 = BordaObservada(borda)
     participantes: list[tuple[Any, BordaObservada]] = [(_AgenteA1(c), borda_a1) for c in populacao]
     if bot_a2 is not None:
-        bot_a2.cadastrar(borda_a2, identidades)
+        bot_a2.cadastrar(borda_a2, IdentidadesA2(identidades))
         participantes.append((bot_a2, borda_a2))
 
     ordem = random.Random(f"ordem:{semente}")

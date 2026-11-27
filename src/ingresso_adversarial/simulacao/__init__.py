@@ -13,7 +13,7 @@ Uso pela orquestração (#12)::
 from ..config import Parametros
 from ..contratos import EstrategiaA2, PoliticaA3, ResultadoRodada
 from ..eventos import Log
-from .identidades import Identidades
+from .identidades import Identidades, IdentidadesA2
 from .indicadores import calcular_indicadores
 from .observacoes import observacao_a2, observacao_a3
 from .rodada import Abertura, BordaObservada, Participante, Pedido, executar_abertura
@@ -22,6 +22,7 @@ __all__ = [
     "Abertura",
     "BordaObservada",
     "Identidades",
+    "IdentidadesA2",
     "Participante",
     "Pedido",
     "executar_abertura",

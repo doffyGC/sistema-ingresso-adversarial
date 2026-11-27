@@ -6,7 +6,7 @@ from conftest import politica
 
 from ingresso_adversarial import carregar_parametros
 from ingresso_adversarial.contratos import RespostaBorda
-from ingresso_adversarial.simulacao import BordaObservada, executar_abertura
+from ingresso_adversarial.simulacao import BordaObservada, IdentidadesA2, executar_abertura
 
 POLITICAS = {
     "estado inicial": politica(),
@@ -38,17 +38,22 @@ def test_participante_so_recebe_as_operacoes_do_comprador():
     class Espiao:
         def cadastrar(self, borda, identidades):
             recebidas.append(borda)
-            borda.cadastrar(identidades.nova_conta("A2"), identidades.novo_cluster())
+            recebidas.append(identidades)
+            borda.cadastrar(identidades.nova_conta(), identidades.novo_cluster())
 
         def agir(self, tick, borda):
             recebidas.append(borda)
 
     executar_abertura(1, politica(), Espiao(), carregar_parametros(), 42)
-    assert all(isinstance(b, BordaObservada) for b in recebidas)
+    bordas = [b for b in recebidas if not isinstance(b, IdentidadesA2)]
+    assert all(isinstance(b, BordaObservada) for b in bordas)
+    # As identidades do bot só criam contas: não dizem quem é dono de quê.
+    identidades = next(r for r in recebidas if isinstance(r, IdentidadesA2))
+    assert not hasattr(identidades, "dono") and not hasattr(identidades, "contas_de")
     with pytest.raises(AttributeError):
-        recebidas[0].plataforma  # não alcança o estoque por trás da Borda
+        bordas[0].plataforma  # não alcança o estoque por trás da Borda
     with pytest.raises(AttributeError):
-        recebidas[0].traduzir
+        bordas[0].traduzir
 
 
 def test_pedidos_do_bot_guardam_so_respostas_da_borda():
