@@ -75,6 +75,11 @@ reserva expirar poderia recapturá-lo, mesmo com R1 ligado.
 O evento `volta_ao_publico` registra quantas contas elegíveis havia na fila naquele
 momento; o verificador usa isso para conferir o INV4.
 
+A espera não prende o ingresso para sempre (INV5): ela só acontece enquanto alguma conta
+elegível tem uma oferta aberta, e toda oferta tem prazo. O verificador acusa um ingresso
+esperando sem nenhuma oferta aberta. Se A3 desligar o R1 no meio da rodada, os ingressos
+que esperavam voltam ao público; as ofertas já abertas valem até o prazo delas.
+
 ## O que o comprador vê
 
 | Situação | R6 desligado (estado inicial) | R6 ligado |

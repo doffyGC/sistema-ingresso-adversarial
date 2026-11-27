@@ -93,6 +93,13 @@ Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comp
 | Vê | Respostas por categoria, limiares expostos (o `detalhe` de um 429, por exemplo), reservas obtidas, expiradas, recapturas, compras, ofertas da fila, custo de pré-autorização | Requisições, rejeições pelo **motivo exato**, conversão geral e por cluster, estoque retido por minuto, periodicidade das devoluções, vendidos, contas rebaixadas, desistências |
 | Não vê | O estoque, outras contas, clusters, motivo interno de rejeição | Quem é A1 e quem é A2 (os ids são opacos) |
 
+**Com R6 ligado**, A1 também recebe só a resposta genérica: `SEM_CARTAO` e o 429 chegam
+como `REJEITADA`. Sem saber o motivo, o comprador trata a recusa como uma tentativa
+frustrada (conta para ir à fila ou desistir por `fila`), e a desistência por `verificacao`
+deixa de acontecer. É de propósito: A1 não tem como saber que foi a pré-autorização. Por
+isso, ao comparar rodadas, as desistências por motivo só são comparáveis entre políticas
+com o R6 no mesmo estado; o total de desistências vale sempre.
+
 **Periodicidade:** é o intervalo mais comum entre devoluções de ingressos ao público. A
 recaptura em ciclos (PE3) aparece como devoluções a intervalos regulares.
 
