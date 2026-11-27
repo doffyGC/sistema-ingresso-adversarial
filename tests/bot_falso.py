@@ -78,3 +78,48 @@ def intensivo(num_contas=10, rpm=600) -> BotFalso:
 
 def regular() -> BotFalso:
     return BotFalso(EstrategiaA2(tipo=TipoEstrategiaA2.REGULAR, num_contas=1, requisicoes_por_minuto=6))
+
+
+class BotRecaptura:
+    """Imobilização e recaptura (PE3): reserva sem pagar e pega de volta quando expira."""
+
+    def __init__(self, num_contas=10, rpm=600):
+        self.estrategia = EstrategiaA2(
+            tipo=TipoEstrategiaA2.IMOBILIZACAO_RECAPTURA,
+            num_contas=num_contas,
+            requisicoes_por_minuto=rpm,
+            fracao_pagamento=0.0,
+            monitorar_disponibilidade=True,
+        )
+        self.contas: list[str] = []
+        self.prazos: dict[str, list[int]] = {}  # conta -> expira_em das reservas que fez
+        self.orcamento = 0.0
+        self.limite_por_conta = 4  # aprendido na primeira rodada; aqui, fixo
+
+    def cadastrar(self, borda, identidades) -> None:
+        cluster = identidades.novo_cluster()
+        for _ in range(self.estrategia.num_contas):
+            conta = identidades.nova_conta()
+            borda.cadastrar(conta, cluster)
+            self.contas.append(conta)
+            self.prazos[conta] = []
+
+    def livres(self, tick):
+        return [c for c in self.contas if sum(1 for p in self.prazos[c] if p > tick) < self.limite_por_conta]
+
+    def agir(self, tick: int, borda) -> None:
+        self.orcamento += self.estrategia.requisicoes_por_minuto / 60
+        if self.orcamento < 1 or not self.livres(tick):
+            return
+        self.orcamento -= 1
+        resposta = borda.ver_disponiveis(self.contas[0])
+        vistos = resposta.dados.get("ingressos", []) if resposta.ok else []
+        vistos.sort(key=lambda i: (i["setor"] != "premium", i["id"]))
+        for ingresso in vistos:
+            livres = self.livres(tick)
+            if self.orcamento < 1 or not livres:
+                return
+            self.orcamento -= 1
+            reserva = borda.reservar(livres[0], ingresso["id"])
+            if reserva.ok:
+                self.prazos[livres[0]].append(reserva.dados["expira_em"])

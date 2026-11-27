@@ -2,7 +2,8 @@
 
 import inspect
 
-from bot_falso import intensivo, regular
+import pytest
+from bot_falso import BotRecaptura, intensivo, regular
 from conftest import politica
 
 from ingresso_adversarial import carregar_parametros
@@ -81,3 +82,19 @@ def test_recaptura_sem_controles_aparece_na_telemetria():
     pol = politica(ttl=60)
     abertura = executar_abertura(1, pol, None, PARAMETROS, 42)
     assert sum(abertura.telemetria.devolucoes_por_tick.values()) > 0
+
+
+@pytest.mark.parametrize("ttl", [120, 600])
+def test_periodicidade_revela_a_recaptura_em_ciclos(ttl):
+    """PE3: com R1 desligado, o bot de recaptura devolve cada ingresso a cada ~TTL."""
+    bot = BotRecaptura()
+    resultado = executar_rodada(1, politica(ttl=ttl), bot.estrategia, bot, PARAMETROS, 42)
+    assert resultado.observacao_a3.periodicidade is not None
+    assert abs(resultado.observacao_a3.periodicidade - ttl) <= ttl // 10
+
+
+@pytest.mark.parametrize("semente", [1, 7, 42])
+def test_sem_recaptura_nao_ha_periodicidade(semente):
+    """A1 e um A2 que compra de verdade não deixam um ciclo de devoluções."""
+    assert rodada(intensivo(), semente=semente, pol=politica(ttl=120)).observacao_a3.periodicidade is None
+    assert rodada(regular(), semente=semente, pol=politica(ttl=120)).observacao_a3.periodicidade is None

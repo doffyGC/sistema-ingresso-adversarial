@@ -108,8 +108,13 @@ deixa de acontecer. É de propósito: A1 não tem como saber que foi a pré-auto
 isso, ao comparar rodadas, as desistências por motivo só são comparáveis entre políticas
 com o R6 no mesmo estado; o total de desistências vale sempre.
 
-**Periodicidade:** é o intervalo mais comum entre devoluções de ingressos ao público. A
-recaptura em ciclos (PE3) aparece como devoluções a intervalos regulares.
+**Periodicidade:** de quantos em quantos ticks **o mesmo ingresso** volta ao público. Na
+recaptura em ciclos (PE3), A2 reserva, deixa expirar e reserva de novo, e cada ingresso volta
+a cada ~TTL. Medir entre ticks seguidos não serve: as expirações chegam em rajadas e os
+intervalos de 1 tick escondem o ciclo. A medida é a mediana dos intervalos por ingresso,
+quando pelo menos metade deles fica a até 10% dela; devoluções esparsas, como as de A1,
+dão `None`. O teste usa um bot de recaptura (`tests/bot_falso.py`) e espera um valor perto
+do TTL.
 
 ## Indicadores
 

@@ -30,6 +30,7 @@ class Telemetria:
     expiradas_por_conta: Counter = field(default_factory=Counter)
     ofertas_vencidas_por_conta: Counter = field(default_factory=Counter)
     devolucoes_por_tick: Counter = field(default_factory=Counter)  # voltas ao público
+    devolucoes_por_ingresso: dict[int, list[int]] = field(default_factory=dict)  # ingresso -> ticks
     rebaixadas: list[str] = field(default_factory=list)
     canceladas: list[str] = field(default_factory=list)  # donos de vendas canceladas
     donos: dict[int, str] = field(default_factory=dict)  # ingresso vendido -> conta
@@ -67,6 +68,7 @@ class Telemetria:
                 self.ofertas_vencidas_por_conta[d["conta"]] += 1
             elif evento.tipo == "volta_ao_publico":
                 self.devolucoes_por_tick[evento.tick] += 1
+                self.devolucoes_por_ingresso.setdefault(d["ingresso"], []).append(evento.tick)
             elif evento.tipo == "rebaixamento":
                 self.rebaixadas.append(d["conta"])
             elif evento.tipo == "cancelamento":
@@ -106,14 +108,24 @@ class Telemetria:
         return [round(max(self.retido[i : i + 60]), 3) for i in range(0, len(self.retido), 60)]
 
     def periodicidade(self) -> int | None:
-        """Intervalo, em ticks, mais comum entre devoluções ao público, se houver padrão.
+        """De quantos em quantos ticks o mesmo ingresso volta ao público, se houver padrão.
 
-        A recaptura em ciclos (PE3) aparece como devoluções a cada ~TTL. Exige pelo menos
-        três intervalos e que o mais comum responda por metade deles.
+        Na recaptura em ciclos (PE3), A2 reserva, deixa expirar e reserva de novo: cada
+        ingresso volta ao público a cada ~TTL. Por isso o intervalo é medido entre as
+        devoluções **do mesmo ingresso**; entre ticks seguidos, as rajadas de expiração
+        dariam intervalos de 1 tick e esconderiam o ciclo.
+
+        Devolve a mediana dos intervalos quando há pelo menos três e quando pelo menos
+        metade deles fica a até 10% dela. Devoluções esparsas, como as de A1, dão None.
         """
-        ticks = sorted(self.devolucoes_por_tick)
-        intervalos = [b - a for a, b in zip(ticks, ticks[1:])]
+        intervalos = sorted(
+            b - a
+            for ticks in self.devolucoes_por_ingresso.values()
+            for a, b in zip(ticks, ticks[1:])
+        )
         if len(intervalos) < 3:
             return None
-        intervalo, vezes = Counter(intervalos).most_common(1)[0]
-        return intervalo if vezes * 2 >= len(intervalos) else None
+        mediana = intervalos[len(intervalos) // 2]
+        tolerancia = max(1, mediana // 10)
+        perto = sum(1 for i in intervalos if abs(i - mediana) <= tolerancia)
+        return mediana if perto * 2 >= len(intervalos) else None
