@@ -92,6 +92,7 @@ class Plataforma:
         self.ofertas: dict[int, Oferta] = {}  # ingresso_id -> oferta em aberto
         self.cobrancas: list[str] = []  # ids das reservas cobradas (pagamento simulado)
         self.expiracoes: dict[str, int] = {}  # conta -> quantas reservas deixou expirar
+        self.aguardando_fila: list[int] = []  # ingressos em OFERTADO_FILA esperando a vez
 
         self.politica = PoliticaA3()
         self.aplicar_politica(politica or self.parametros.politica_inicial)
@@ -106,6 +107,7 @@ class Plataforma:
         self.log.registrar("politica", quem="A3", politica=politica.model_dump(), ligados=politica.controles_ligados())
         for conta in self.fila.ordem():
             self.aplicar_r5(conta)
+        self.atender_aguardando()  # os limites mudaram: quem é elegível pode ter mudado
 
     # ------------------------------------------------------------------
     # Consultas auxiliares
@@ -274,6 +276,7 @@ class Plataforma:
         self.fila.entrar(conta_id)
         self.log.registrar("fila_entrada", quem=conta_id)
         self.aplicar_r5(conta_id)
+        self.atender_aguardando()
         return Resultado(True, dados={"posicao": self.fila.posicao(conta_id)})
 
     def consultar_fila(self, conta_id: str) -> Resultado:
@@ -303,25 +306,59 @@ class Plataforma:
     # Redistribuição (R1): para onde vai um ingresso liberado
     # ------------------------------------------------------------------
 
+    def elegiveis_na_fila(self) -> list[str]:
+        """Contas da fila que poderiam receber um ingresso, com ou sem oferta aberta (DA1)."""
+        return [c for c in self.fila.ordem() if self.motivo_para_recusar(self.contas[c]) is None]
+
     def proximo_da_fila(self) -> str | None:
-        """Primeira conta da fila que pode receber o ingresso agora."""
-        contas_com_oferta = [o.conta for o in self.ofertas.values()]
-        for conta_id in self.fila.ordem():
-            if conta_id in contas_com_oferta:
-                continue  # cada conta recebe uma oferta por vez
-            if self.motivo_para_recusar(self.contas[conta_id]) is None:
+        """Primeira conta elegível da fila que ainda não tem oferta aberta."""
+        contas_com_oferta = {o.conta for o in self.ofertas.values()}
+        for conta_id in self.elegiveis_na_fila():
+            if conta_id not in contas_com_oferta:  # cada conta recebe uma oferta por vez
                 return conta_id
         return None
 
     def redistribuir(self, ingresso_id: int, usar_fila: bool) -> None:
-        conta = self.proximo_da_fila() if usar_fila else None
-        if conta is None:
-            self.estoque.mudar_estado(ingresso_id, DISPONIVEL, "volta ao estoque público")
-            return
-        prazo = self.tick + self.politica.r1.prazo_oferta
-        self.estoque.mudar_estado(ingresso_id, OFERTADO_FILA, "oferta à fila", ofertado_para=conta)
-        self.ofertas[ingresso_id] = Oferta(conta, prazo)
-        self.log.registrar("oferta", quem="sistema", ingresso=ingresso_id, conta=conta, prazo=prazo)
+        """Decide para onde vai um ingresso liberado.
+
+        Com a fila: oferta à próxima conta elegível livre. Se todas as elegíveis já estão
+        com uma oferta aberta, o ingresso espera a vez em OFERTADO_FILA, fora da
+        disponibilidade (critério 3). Só volta ao público quando não há mais ninguém
+        elegível na fila (DA1).
+        """
+        if usar_fila:
+            conta = self.proximo_da_fila()
+            if conta is not None:
+                prazo = self.tick + self.politica.r1.prazo_oferta
+                self.estoque.mudar_estado(ingresso_id, OFERTADO_FILA, "oferta à fila", ofertado_para=conta)
+                self.ofertas[ingresso_id] = Oferta(conta, prazo)
+                self.log.registrar("oferta", quem="sistema", ingresso=ingresso_id, conta=conta, prazo=prazo)
+                return
+            if self.elegiveis_na_fila():
+                ingresso = self.estoque.ingressos[ingresso_id]
+                if not (ingresso.estado == OFERTADO_FILA and ingresso.ofertado_para is None):
+                    self.estoque.mudar_estado(ingresso_id, OFERTADO_FILA, "aguarda a vez na fila")
+                    self.log.registrar("aguardando_fila", quem="sistema", ingresso=ingresso_id)
+                self.aguardando_fila.append(ingresso_id)
+                return
+
+        self.estoque.mudar_estado(ingresso_id, DISPONIVEL, "volta ao estoque público")
+        self.log.registrar(
+            "volta_ao_publico",
+            quem="sistema",
+            ingresso=ingresso_id,
+            pela_fila=usar_fila,
+            elegiveis_na_fila=len(self.elegiveis_na_fila()) if usar_fila else 0,
+        )
+
+    def atender_aguardando(self) -> None:
+        """Tenta de novo os ingressos que esperavam a vez na fila.
+
+        Se A3 desligou o R1 enquanto eles esperavam, voltam ao público (a fila deixou de valer).
+        """
+        pendentes, self.aguardando_fila = self.aguardando_fila, []
+        for ingresso_id in pendentes:
+            self.redistribuir(ingresso_id, usar_fila=self.politica.r1.ativo)
 
     def responder_oferta(self, conta_id: str, ingresso_id: int, aceitar: bool) -> Resultado:
         conta = self.contas.get(conta_id)
@@ -338,10 +375,12 @@ class Plataforma:
 
         if aceitar and recusa is None:
             reserva = self.criar_reserva(conta, ingresso_id, veio_da_fila=True)
+            self.atender_aguardando()  # a conta saiu da fila: a vez passa adiante
             return Resultado(True, criou=True, dados=self.dados_da_reserva(reserva))
 
         # Recusou (ou não pode aceitar): a oferta passa ao próximo da fila.
         self.redistribuir(ingresso_id, usar_fila=True)
+        self.atender_aguardando()
         if recusa is not None:
             motivo, info = recusa
             return Resultado(False, motivo, dados=info)
@@ -395,13 +434,14 @@ class Plataforma:
             self.fila.sair(conta)  # não respondeu a tempo: sai da fila (garante o INV5)
             self.log.registrar("oferta_vencida", quem="sistema", ingresso=ingresso_id, conta=conta)
             self.redistribuir(ingresso_id, usar_fila=True)
+        self.atender_aguardando()
 
     # ------------------------------------------------------------------
     # Invariantes (docs/decisoes-arquitetura.md)
     # ------------------------------------------------------------------
 
     def verificar_invariantes(self) -> list[str]:
-        """Devolve a lista de problemas encontrados. Lista vazia = tudo certo."""
+        """Confere INV1 a INV6. Devolve a lista de problemas encontrados; lista vazia = tudo certo."""
         problemas = []
         ativas = self.reservas_ativas()
 
@@ -415,7 +455,8 @@ class Plataforma:
                 problemas.append(f"INV1: ingresso {ingresso.id} RESERVADO sem reserva (ou o contrário)")
             if (ingresso.estado == VENDIDO) != (ingresso.dono is not None):
                 problemas.append(f"INV1: ingresso {ingresso.id} VENDIDO sem dono (ou o contrário)")
-            if (ingresso.estado == OFERTADO_FILA) != (ingresso.id in self.ofertas):
+            na_fila = ingresso.id in self.ofertas or ingresso.id in self.aguardando_fila
+            if (ingresso.estado == OFERTADO_FILA) != na_fila:
                 problemas.append(f"INV1: ingresso {ingresso.id} OFERTADO_FILA sem oferta (ou o contrário)")
 
         # INV3: limites por conta e, com R2, por cluster.
@@ -430,10 +471,21 @@ class Plataforma:
                 if self.ativas_do_cluster(cluster) > p.r2.max_por_cluster:
                     problemas.append(f"INV3: cluster {cluster} passou do limite de reservas ativas")
 
+        # INV4: com a fila, um ingresso só volta ao público quando não há ninguém elegível nela.
+        for evento in self.log.do_tipo("volta_ao_publico"):
+            if evento.dados["pela_fila"] and evento.dados["elegiveis_na_fila"] > 0:
+                problemas.append(
+                    f"INV4: ingresso {evento.dados['ingresso']} voltou ao público no tick {evento.tick} "
+                    f"com {evento.dados['elegiveis_na_fila']} conta(s) elegível(is) na fila"
+                )
+
         # INV5: nenhuma oferta fica parada depois do prazo.
         for ingresso_id, oferta in self.ofertas.items():
             if oferta.prazo <= self.tick:
                 problemas.append(f"INV5: oferta do ingresso {ingresso_id} passou do prazo")
+        # Quem espera a vez depende de uma oferta aberta, que tem prazo. Sem ela, ficaria preso.
+        if self.aguardando_fila and not self.ofertas:
+            problemas.append(f"INV5: ingressos {self.aguardando_fila} esperam a fila sem nenhuma oferta aberta")
 
         # INV6: cada reserva é cobrada no máximo uma vez, e só reservas pagas são cobradas.
         for reserva in self.reservas.values():

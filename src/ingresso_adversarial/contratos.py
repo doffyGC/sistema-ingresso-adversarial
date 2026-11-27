@@ -37,7 +37,7 @@ class Ingresso(BaseModel):
     estado: EstadoIngresso = EstadoIngresso.DISPONIVEL
     reserva_id: str | None = None  # preenchido só quando RESERVADO
     dono: str | None = None  # preenchido só quando VENDIDO
-    ofertado_para: str | None = None  # preenchido só quando OFERTADO_FILA
+    ofertado_para: str | None = None  # quem recebeu a oferta; None em OFERTADO_FILA = esperando a vez
 
 
 class StatusReserva(StrEnum):
@@ -221,6 +221,7 @@ class ObservacaoA3(BaseModel):
     reservas_expiradas: int = 0
     conversao: float = 0.0  # reservas pagas / reservas criadas
     conversao_por_cluster: dict[str, float] = {}
+    conversao_por_conta: dict[str, float] = {}  # só contas que reservaram algo (ids opacos)
     estoque_retido: list[float] = []  # fração do lote RESERVADO ao longo da rodada
     periodicidade: int | None = None  # picos de devolução a cada N ticks, se houver
     vendidos: int = 0
@@ -236,6 +237,8 @@ class Indicadores(BaseModel):
 
     ingressos_a1: int = 0
     ingressos_a2: int = 0
+    premium_a1: int = 0  # dos ingressos acima, quantos são do setor premium
+    premium_a2: int = 0
     estoque_retido_medio: float = 0.0
     conversao_a1: float = 0.0
     conversao_a2: float = 0.0

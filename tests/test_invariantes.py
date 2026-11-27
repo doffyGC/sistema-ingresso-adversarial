@@ -19,6 +19,8 @@ POLITICAS = {
     ),
     "R1 e R2": politica(ttl=15, r1={"ativo": True, "prazo_oferta": 4}, r2={"ativo": True, "max_por_cluster": 2}),
     "R4 e R5": politica(ttl=10, r4={"ativo": True, "prorrogacao": 5}, r5={"ativo": True, "limiar_expiracoes": 1}),
+    # TTL curto e muitas reservas por conta: varias expiram no mesmo tick (criterio 3).
+    "expiracao em massa": politica(ttl=4, limite_por_conta=8, r1={"ativo": True, "prazo_oferta": 3}),
 }
 
 
@@ -79,6 +81,17 @@ def test_inv4_expirado_vai_para_a_fila_antes_do_publico():
     assert plataforma.estoque.estado(1) == EstadoIngresso.OFERTADO_FILA
     assert plataforma.estoque.ingressos[1].ofertado_para == "a1"
     assert 1 not in [i.id for i in plataforma.disponibilidade()]
+
+
+def test_inv4_verificacao_acusa_volta_ao_publico_com_fila_elegivel():
+    """Se o ingresso voltar ao público com alguém elegível na fila, o verificador acusa."""
+    plataforma, borda = ambiente(politica(ttl=5, r1={"ativo": True}))
+    cadastrar(borda, "a2", "a1")
+    borda.entrar_fila("a1")
+    assert plataforma.verificar_invariantes() == []
+    # Simula a falha antiga: o ingresso liberado vai direto ao público com a1 esperando.
+    plataforma.log.registrar("volta_ao_publico", quem="sistema", ingresso=1, pela_fila=True, elegiveis_na_fila=1)
+    assert any(p.startswith("INV4") for p in plataforma.verificar_invariantes())
 
 
 def test_inv5_ingresso_nao_fica_preso_na_fila():

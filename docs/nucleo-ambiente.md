@@ -50,15 +50,35 @@ plataforma.log.salvar("logs/execucao.jsonl")
 |---|---|
 | `DISPONIVEL → RESERVADO` | Alguém reservou |
 | `RESERVADO → VENDIDO` | Pagou |
-| `RESERVADO → OFERTADO_FILA` | O TTL venceu com R1 ligado e há alguém na fila que pode receber |
-| `RESERVADO → DISPONIVEL` | O TTL venceu com R1 desligado (é a falha PE3) ou ninguém da fila pode receber |
+| `RESERVADO → OFERTADO_FILA` | O TTL venceu com R1 ligado e há alguém elegível na fila (recebe a oferta ou espera a vez) |
+| `RESERVADO → DISPONIVEL` | O TTL venceu com R1 desligado (é a falha PE3) ou não há ninguém elegível na fila |
 | `OFERTADO_FILA → RESERVADO` | Quem estava na fila aceitou |
-| `OFERTADO_FILA → OFERTADO_FILA` | Recusou ou não respondeu a tempo: passa ao próximo |
+| `OFERTADO_FILA → OFERTADO_FILA` | Recusou, não respondeu a tempo ou o ingresso esperava a vez: passa ao próximo |
 | `OFERTADO_FILA → DISPONIVEL` | A fila acabou |
 | `VENDIDO → OFERTADO_FILA` ou `DISPONIVEL` | Cancelamento *a posteriori* (decisão de A3, #11) |
 
 Quem recusa uma oferta ou deixa ela vencer sai da fila. Assim nenhum ingresso fica
 preso em `OFERTADO_FILA` (INV5).
+
+### Espera pela fila (critério 3, DA1)
+
+Uma conta é **elegível** quando está na fila e poderia reservar agora (não passou do
+limite por conta nem de R2 e, com R3, tem cartão). Cada conta recebe uma oferta por vez.
+
+Quando várias reservas expiram juntas e todas as contas elegíveis já estão com uma oferta
+aberta, os ingressos que sobram **esperam a vez**: ficam em `OFERTADO_FILA` com
+`ofertado_para = None`, fora da disponibilidade, e recebem a oferta assim que alguém da
+fila fica livre. O ingresso só volta ao estoque público quando não resta ninguém elegível
+na fila. Sem essa espera, o ingresso excedente voltaria direto ao público e quem deixou a
+reserva expirar poderia recapturá-lo, mesmo com R1 ligado.
+
+O evento `volta_ao_publico` registra quantas contas elegíveis havia na fila naquele
+momento; o verificador usa isso para conferir o INV4.
+
+A espera não prende o ingresso para sempre (INV5): ela só acontece enquanto alguma conta
+elegível tem uma oferta aberta, e toda oferta tem prazo. O verificador acusa um ingresso
+esperando sem nenhuma oferta aberta. Se A3 desligar o R1 no meio da rodada, os ingressos
+que esperavam voltam ao público; as ofertas já abertas valem até o prazo delas.
 
 ## O que o comprador vê
 
