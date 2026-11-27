@@ -80,7 +80,8 @@ Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comp
 - se o pagamento leva 429, **mantém a reserva** e repete o pedido no tick seguinte (a Borda
   não guarda o 429, então a mesma chave serve). Com R6, o 429 chega como `REJEITADA`
   genérica: sem saber o motivo, o comprador insiste enquanto o prazo que recebeu ao reservar
-  não passou. Assim, o dano do limite de requisições aparece como falso positivo, e não como
+  não passou. Depois dele, consulta a reserva antes de desistir, porque o R4 pode ter
+  prorrogado; se ela ainda está ativa, guarda o prazo novo e continua. Assim, o dano do limite de requisições aparece como falso positivo, e não como
   expiração ou desistência por prazo. Nos ticks em que paga, o ansioso não consulta a reserva:
   pagar tem prioridade.
 

@@ -159,30 +159,41 @@ class CompradorA1:
             pagar_em=tick + self.tempo_pagar,
         )
 
-    def tentar_de_novo(self, resposta: RespostaBorda, tick: int) -> bool:
+    def tentar_de_novo(self, resposta: RespostaBorda, tick: int, borda) -> bool:
         """A recusa não quer dizer que a reserva acabou: vale repetir no próximo tick.
 
         Um 429 só barra a requisição, a reserva continua ativa. Com R6, o 429 chega como
-        REJEITADA genérica; o comprador não sabe o motivo, mas sabe o prazo que recebeu ao
-        reservar e insiste enquanto ele não passou.
+        REJEITADA genérica e o comprador não sabe o motivo: insiste enquanto o prazo que
+        conhece não passou. Depois dele, consulta a reserva, porque o R4 pode ter
+        prorrogado; se ela ainda está ativa, guarda o prazo novo e insiste.
         """
         if resposta.categoria == Categoria.LIMITE_REQUISICOES:
             return True
-        return resposta.categoria == Categoria.REJEITADA and tick < self.reserva.expira_em
+        if resposta.categoria != Categoria.REJEITADA:
+            return False
+        if tick < self.reserva.expira_em:
+            return True
+        consulta = borda.consultar_reserva(self.conta, self.reserva.reserva_id)
+        if not consulta.ok:
+            return True  # a consulta também foi barrada: não dá para saber ainda
+        if consulta.dados["status"] != "ATIVA":
+            return False
+        self.reserva.expira_em = consulta.dados["expira_em"]
+        return True
 
     def pagar(self, tick: int, borda) -> bool:
         """Inicia ou conclui o pagamento quando chega a hora. Devolve True se fez requisição."""
         reserva = self.reserva
         if not reserva.iniciado and tick >= reserva.iniciar_em:
             inicio = borda.iniciar_pagamento(self.conta, reserva.reserva_id, chave=f"{reserva.reserva_id}-inicio")
-            reserva.iniciado = not self.tentar_de_novo(inicio, tick)
+            reserva.iniciado = not self.tentar_de_novo(inicio, tick, borda)
             if tick < reserva.pagar_em:
                 return True
         if tick < reserva.pagar_em:
             return False
 
         resposta = borda.pagar(self.conta, reserva.reserva_id, chave=f"{reserva.reserva_id}-pagamento")
-        if not resposta.ok and self.tentar_de_novo(resposta, tick):
+        if not resposta.ok and self.tentar_de_novo(resposta, tick, borda):
             return True  # continua pagando e repete a mesma chave (a Borda não guarda o 429)
         self.reserva = None
         self.proxima_acao = tick + self.cadencia

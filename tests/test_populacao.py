@@ -83,15 +83,17 @@ def test_sem_cartao_desiste_com_a_pre_autorizacao():
     assert desistentes and desistentes <= sem_cartao
 
 
+@pytest.mark.parametrize("r4", [False, True])
 @pytest.mark.parametrize("r6", [False, True])
 @pytest.mark.parametrize("semente", [1, 42])
-def test_429_no_pagamento_nao_faz_a1_perder_a_reserva(r6, semente):
+def test_429_no_pagamento_nao_faz_a1_perder_a_reserva(r4, r6, semente):
     """Um 429 barra a requisição, não a reserva: A1 insiste e não perde a compra por isso.
 
     Com R6, o 429 chega como REJEITADA genérica, e o comprador insiste enquanto o prazo
-    que recebeu ao reservar não passou. O log guarda o motivo exato para o teste conferir.
+    que recebeu ao reservar não passou; depois dele, consulta a reserva, porque o R4 pode
+    ter prorrogado. O log guarda o motivo exato para o teste conferir.
     """
-    pol = politica(limite_requisicoes={"ativo": True, "por": "conta"}, r6={"ativo": r6})
+    pol = politica(limite_requisicoes={"ativo": True, "por": "conta"}, r4={"ativo": r4}, r6={"ativo": r6})
     abertura = executar_abertura(1, pol, regular(), carregar_parametros(), semente)
     log = abertura.plataforma.log
     contas_a1 = abertura.identidades.contas_de("A1")
