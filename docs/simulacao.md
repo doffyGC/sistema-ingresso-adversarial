@@ -69,6 +69,12 @@ Os parâmetros estão em `[populacao_a1]` de `config/parametros.toml`. Cada comp
   para a prorrogação do R4;
 - depois de `tentativas_antes_da_fila` "indisponível", desiste ou entra na fila. Na fila, aceita
   a oferta com probabilidade `aceita_oferta`.
+- se o pagamento leva 429, **mantém a reserva** e repete o pedido no tick seguinte (a Borda
+  não guarda o 429, então a mesma chave serve). Com R6, o 429 chega como `REJEITADA`
+  genérica: sem saber o motivo, o comprador insiste enquanto o prazo que recebeu ao reservar
+  não passou. Assim, o dano do limite de requisições aparece como falso positivo, e não como
+  expiração ou desistência por prazo. Nos ticks em que paga, o ansioso não consulta a reserva:
+  pagar tem prioridade.
 
 | Variação | Efeito |
 |---|---|

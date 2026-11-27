@@ -29,6 +29,7 @@ FIM = "fim"  # comprou o que queria ou desistiu
 @dataclass
 class ReservaEmPagamento:
     reserva_id: str
+    expira_em: int  # prazo informado pela Borda ao reservar
     iniciar_em: int  # tick em que começa a autenticação do pagamento (R4)
     pagar_em: int
     iniciado: bool = False
@@ -79,11 +80,12 @@ class CompradorA1:
             self.fase = PROCURANDO
 
         if self.fase == PAGANDO:
-            if self.ansioso:
-                # O ansioso fica conferindo a reserva enquanto paga: é a cadência alta que
-                # um limite de requisições confunde com bot (P3).
-                borda.consultar_reserva(self.conta, self.reserva.reserva_id)
-            self.pagar(tick, borda)
+            reserva = self.reserva
+            pediu = self.pagar(tick, borda)  # pagar vem antes: é a ação que importa
+            if self.ansioso and not pediu and self.fase == PAGANDO:
+                # Nos ticks sem pagamento, o ansioso fica conferindo a reserva: é a
+                # cadência alta que um limite de requisições confunde com bot (P3).
+                borda.consultar_reserva(self.conta, reserva.reserva_id)
             return
 
         if tick < self.proxima_acao:
@@ -125,6 +127,8 @@ class CompradorA1:
     def olhar_fila(self, tick: int, borda) -> bool:
         """Confere se chegou oferta. Devolve True se a ação do tick foi gasta aqui."""
         resposta = borda.consultar_fila(self.conta)
+        if resposta.categoria == Categoria.LIMITE_REQUISICOES:
+            return True  # a ação do tick já foi gasta; tenta de novo na próxima
         if not resposta.ok:
             return False
         oferta = resposta.dados.get("oferta")
@@ -150,19 +154,36 @@ class CompradorA1:
         self.falhas = 0
         self.reserva = ReservaEmPagamento(
             reserva_id=resposta.dados["reserva_id"],
+            expira_em=resposta.dados["expira_em"],
             iniciar_em=tick + self.tempo_pagar // 2,
             pagar_em=tick + self.tempo_pagar,
         )
 
-    def pagar(self, tick: int, borda) -> None:
+    def tentar_de_novo(self, resposta: RespostaBorda, tick: int) -> bool:
+        """A recusa não quer dizer que a reserva acabou: vale repetir no próximo tick.
+
+        Um 429 só barra a requisição, a reserva continua ativa. Com R6, o 429 chega como
+        REJEITADA genérica; o comprador não sabe o motivo, mas sabe o prazo que recebeu ao
+        reservar e insiste enquanto ele não passou.
+        """
+        if resposta.categoria == Categoria.LIMITE_REQUISICOES:
+            return True
+        return resposta.categoria == Categoria.REJEITADA and tick < self.reserva.expira_em
+
+    def pagar(self, tick: int, borda) -> bool:
+        """Inicia ou conclui o pagamento quando chega a hora. Devolve True se fez requisição."""
         reserva = self.reserva
         if not reserva.iniciado and tick >= reserva.iniciar_em:
-            borda.iniciar_pagamento(self.conta, reserva.reserva_id, chave=f"{reserva.reserva_id}-inicio")
-            reserva.iniciado = True
+            inicio = borda.iniciar_pagamento(self.conta, reserva.reserva_id, chave=f"{reserva.reserva_id}-inicio")
+            reserva.iniciado = not self.tentar_de_novo(inicio, tick)
+            if tick < reserva.pagar_em:
+                return True
         if tick < reserva.pagar_em:
-            return
+            return False
 
         resposta = borda.pagar(self.conta, reserva.reserva_id, chave=f"{reserva.reserva_id}-pagamento")
+        if not resposta.ok and self.tentar_de_novo(resposta, tick):
+            return True  # continua pagando e repete a mesma chave (a Borda não guarda o 429)
         self.reserva = None
         self.proxima_acao = tick + self.cadencia
         if resposta.ok:
@@ -172,6 +193,7 @@ class CompradorA1:
             self.desistir("prazo")  # a reserva expirou antes de ele conseguir pagar
         else:
             self.fase = PROCURANDO
+        return True
 
     def tratar_rejeicao(self, resposta: RespostaBorda, borda) -> None:
         if resposta.categoria == Categoria.LIMITE_REQUISICOES:
