@@ -1,5 +1,7 @@
 """População A1 (#9): variação controlada pela semente."""
 
+import pytest
+from bot_falso import regular
 from conftest import politica
 
 from ingresso_adversarial import carregar_parametros
@@ -66,3 +68,35 @@ def test_sem_cartao_desiste_com_a_pre_autorizacao():
     desistentes = {c.conta for c in abertura.populacao if c.desistiu == "verificacao"}
     sem_cartao = {c.conta for c in abertura.populacao if not c.tem_cartao}
     assert desistentes and desistentes <= sem_cartao
+
+
+@pytest.mark.parametrize("r6", [False, True])
+@pytest.mark.parametrize("semente", [1, 42])
+def test_429_no_pagamento_nao_faz_a1_perder_a_reserva(r6, semente):
+    """Um 429 barra a requisição, não a reserva: A1 insiste e não perde a compra por isso.
+
+    Com R6, o 429 chega como REJEITADA genérica, e o comprador insiste enquanto o prazo
+    que recebeu ao reservar não passou. O log guarda o motivo exato para o teste conferir.
+    """
+    pol = politica(limite_requisicoes={"ativo": True, "por": "conta"}, r6={"ativo": r6})
+    abertura = executar_abertura(1, pol, regular(), carregar_parametros(), semente)
+    log = abertura.plataforma.log
+    contas_a1 = abertura.identidades.contas_de("A1")
+
+    barrados_no_pagamento = [
+        (e.quem, e.tick)
+        for e in log.do_tipo("requisicao")
+        if e.quem in contas_a1 and e.dados["operacao"] == "pagar" and e.dados["motivo"] == "LIMITE_REQUISICOES"
+    ]
+    assert barrados_no_pagamento  # o cenário de fato aconteceu
+
+    criada_em = {e.dados["reserva"]: e.tick for e in log.do_tipo("reserva")}
+    for expiracao in log.do_tipo("expiracao"):
+        conta, reserva = expiracao.dados["conta"], expiracao.dados["reserva"]
+        if conta not in contas_a1:
+            continue
+        # Nenhuma reserva de A1 expira depois de um 429 no pagamento enquanto ela estava ativa.
+        assert not any(
+            quem == conta and criada_em[reserva] <= tick < expiracao.tick for quem, tick in barrados_no_pagamento
+        ), f"a reserva {reserva} expirou depois de um 429 no pagamento"
+    assert abertura.plataforma.verificar_invariantes() == []
